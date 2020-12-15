@@ -262,9 +262,13 @@ function selectLink(svg) {
             clickedPath.classed(boolClass, false)
             opacity = 1;
         } else {
+            // We already have something selected, thus return.
+            if (svg.select(".link").selectAll(".clicked").size() > 0) {
+                return
+            }
             clickedPath.classed(boolClass, true)
             // Selected following ingredients:
-            console.log(top_ids[obj.source.index] + " " + top_ids[obj.target.index])
+            console.log("Clicked" + top_ids[obj.source.index] + " " + top_ids[obj.target.index])
 
         }
 
