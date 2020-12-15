@@ -1,4 +1,5 @@
-var ingredients = []
+var ingredients = [];
+var cuisines = [];
 var connections = [];
 
 function generate_chord_chart(svg, connections, group_names) {
@@ -138,17 +139,48 @@ function generate_connection_matrix(ids, ingredients) {
     return connections
 }
 
+function get_cuisines(_ingredients) {
+    let cuisine_count = {};
+    for (let i = 0; i < cuisines.length; i++) {
+        let intersection = intersect(ingredients[i], _ingredients);
+        if (intersection.length === _ingredients.length) {
+            for (let cuisine of cuisines[i]) {
+                if (cuisine) {
+                    cuisine_count[cuisine] = cuisine_count[cuisine] ? cuisine_count[cuisine] + 1 : 1;
+                }
+            }
+        }
+    }
+    return cuisine_count;
+}
+
+function get_cuisines_relative(_ingredients) {
+    let limited = get_cuisines(_ingredients);
+    let all = get_cuisines([]);
+    let relative = {}
+    for (let cuisine in limited) {
+        relative[cuisine] = limited[cuisine] / all[cuisine] * 100;
+    }
+    return relative;
+}
+
+function string_to_array(string) {
+    let array = string;
+    array = array.substring(1, array.length - 1);
+    array = array.split(', ');
+    for (let i = 0; i < array.length; i++) {
+        array[i] = array[i].substring(1, array[i].length - 1)
+    }
+    return array
+}
+
 function main() {
     d3.csv("./data/recipes_parsed.csv",
         function (data) {
-            let _ingredients = data.ingredients;
-            _ingredients = _ingredients.substring(1, _ingredients.length - 1);
-            _ingredients = _ingredients.split(', ');
-            for (let i = 0; i < _ingredients.length; i++) {
-                _ingredients[i] = _ingredients[i].substring(1, _ingredients[i].length - 1)
-            }
-            ingredients.push(_ingredients);
+            ingredients.push(string_to_array(data.ingredients));
+            cuisines.push(string_to_array(data.cuisine));
         }).then(function () {
+        console.log(get_cuisines_relative(['olive oil']));
         const top = 7;
 
         let item_counts = ingr_count_map(ingredients);
@@ -177,7 +209,7 @@ function main() {
         .append("g")
         .attr("transform", "translate(500,500)")
 
-
+    show_bar_chart(d3.select('#cuisinechart'), [75, 25],  ['EU', 'US'])
 }
 
 function selectLink(svg) {
