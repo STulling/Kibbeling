@@ -97,5 +97,12 @@ function show_pie_chart(svg, values, labels) {
         .attr("fill", function (d, i) {
             return color(i);
         })
-        .attr("d", arc);
+        .attr("d", arc)
+        .attr("value", function (d) {
+            return d.data.label });
+
+    svg.selectAll("g.arc").on("click", selectChart(svg, function(value) {
+        // Use clicked value.
+
+    }))
 }
