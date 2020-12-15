@@ -231,8 +231,10 @@ function get_random_from_array(arr, n) {
     let result = new Array(n),
         len = arr.length,
         taken = new Array(len);
-    if (n > len)
+    if (len === 0)
         throw new RangeError("getRandom: more elements taken than available");
+    if (n > len)
+        n = len
     while (n--) {
         let x = Math.floor(Math.random() * len);
         result[n] = arr[x in taken ? taken[x] : x];
@@ -414,6 +416,11 @@ function selectLink(svg) {
                 return
             }
             clickedPath.classed(boolClass, true)
+
+            selected_mealtime = undefined;
+            selected_cooktime = undefined;
+            selected_cuisine = undefined;
+
             // Selected following ingredients:
             let pick = [top_ids[obj.source.index], top_ids[obj.target.index]];
             show_link("SELECTED: " + pick[0] + " and " + pick[1]);
