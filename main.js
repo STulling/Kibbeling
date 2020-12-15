@@ -447,6 +447,32 @@ function selectLink(svg) {
     }
 }
 
+function selectChart(chart) {
+    return function (mouseEvent, obj, onClick) {
+        var charElements = chart.selectAll("rect");
+        if (charElements.size() == 0) {
+            charElements = chart.selectAll("g.arc path")
+        }
+        const clickedElement = charElements.filter(elem => elem == obj)
+        const boolClass = "clicked"
+        var opacity = 0.4
+        if (clickedElement.classed(boolClass)) {
+            clickedElement.classed(boolClass, false)
+            opacity = 1;
+        } else {
+            if (chart.selectAll(".clicked").size() > 0) {
+                return
+            }
+            clickedElement.classed(boolClass, true)
+            onClick(clickedElement.attr("value"))
+        }
+        const other = charElements.filter(elem => elem != obj);
+
+
+        other.transition().style("stroke-opacity", opacity).style("fill-opacity", opacity)
+    };
+}
+
 function highlightIngredient(svg, opacityOther) {
     return function (mouseEvent, obj) {
         if (svg.select(".link").selectAll(".clicked").size() > 0) {

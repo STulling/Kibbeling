@@ -45,5 +45,11 @@ function show_bar_chart(svg, values, labels) {
         .attr("width", x.bandwidth())
         .attr("height", function(d) { return height - y(d.Value) - bottomMargin; })
         .attr("fill", "#69b3a2")
+        .attr("value", function (d) {
+            return d.Key
+        })
 
+    svg.selectAll("rect").on("click", selectChart(svg, function(value) {
+        // Use clicked value.
+    }))
 }
