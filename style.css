@@ -9,3 +9,6 @@ body {
     width: 200px;
     height: 150px;
 }
+text.titles {
+    text-transform: capitalize;
+}
