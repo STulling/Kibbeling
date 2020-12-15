@@ -6,7 +6,7 @@ function combine_values_and_labels(values, labels) {
     return map
 }
 
-function show_pie_chart(svg, values, labels) {
+function show_pie_chart(svg, values, labels, onClick) {
     svg.selectAll("*").remove();
 
     var data = combine_values_and_labels(values, labels);
@@ -101,8 +101,5 @@ function show_pie_chart(svg, values, labels) {
         .attr("value", function (d) {
             return d.data.label });
 
-    svg.selectAll("g.arc").on("click", selectChart(svg, function(value) {
-        // Use clicked value.
-
-    }))
+    svg.selectAll("g.arc").on("click", selectChart(svg, onClick));
 }

@@ -1,4 +1,4 @@
-function show_bar_chart(svg, values, labels) {
+function show_bar_chart(svg, values, labels, onClick) {
     svg.selectAll("*").remove();
     height = svg.attr("height")
     width = svg.attr("width")
@@ -49,7 +49,5 @@ function show_bar_chart(svg, values, labels) {
             return d.Key
         })
 
-    svg.selectAll("rect").on("click", selectChart(svg, function(value) {
-        // Use clicked value.
-    }))
+    svg.selectAll("rect").on("click", selectChart(svg, onClick));
 }

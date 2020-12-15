@@ -4,6 +4,9 @@ var connections = [];
 let mealtimes = [];
 let cooktimes = [];
 let names = [];
+let selected_cuisine = undefined;
+let selected_mealtime = undefined;
+let selected_cooktime = undefined;
 
 function generate_chord_chart(svg, connections, group_names) {
     var res = d3.chord()
@@ -182,7 +185,7 @@ function get_cuisines(_ingredients, _cooktimes, _mealtimes, _cuisines) {
     return get_count(cuisines, _ingredients, _cooktimes, _mealtimes, _cuisines);
 }
 
-function get_cuisines_relative(_ingredients, _cooktimes=[], _mealtimes=[], _cuisines=[]) {
+function get_cuisines_relative(_ingredients, _cooktimes = [], _mealtimes = [], _cuisines = []) {
     let limited = get_cuisines(_ingredients, _cooktimes, _mealtimes, _cuisines);
     let all = get_cuisines([], _cooktimes, _mealtimes, _cuisines);
     let relative = {}
@@ -196,7 +199,7 @@ function get_mealtimes(_ingredients, _cooktimes, _mealtimes, _cuisines) {
     return get_count(mealtimes, _ingredients, _cooktimes, _mealtimes, _cuisines);
 }
 
-function get_mealtimes_relative(_ingredients, _cooktimes=[], _mealtimes=[], _cuisines=[]) {
+function get_mealtimes_relative(_ingredients, _cooktimes = [], _mealtimes = [], _cuisines = []) {
     let limited = get_mealtimes(_ingredients, _cooktimes, _mealtimes, _cuisines);
     let all = get_mealtimes([], _cooktimes, _mealtimes, _cuisines);
     let relative = {}
@@ -211,7 +214,7 @@ function get_time_to_cook(_ingredients, _cooktimes, _mealtimes, _cuisines) {
     return get_count(cooktimes, _ingredients, _cooktimes, _mealtimes, _cuisines);
 }
 
-function get_time_to_cook_relative(_ingredients, _cooktimes=[], _mealtimes=[], _cuisines=[]) {
+function get_time_to_cook_relative(_ingredients, _cooktimes = [], _mealtimes = [], _cuisines = []) {
     let limited = get_time_to_cook(_ingredients, _cooktimes, _mealtimes, _cuisines);
     let relative = {}
     let sum = 0;
@@ -265,7 +268,7 @@ function filter_x_on_y(x, y, selection, recipes) {
     let _recipes = Object.assign({}, recipes);
     for (let i = 0; i < y.length; i++) {
         let intersection = intersect(selection, y[i])
-        if (intersection.length === 0) {
+        if (intersection.length === 0 && selection.length > 0) {
             if (x[i] in _recipes) {
                 delete _recipes[x[i]];
             }
@@ -414,16 +417,8 @@ function selectLink(svg) {
             // Selected following ingredients:
             let pick = [top_ids[obj.source.index], top_ids[obj.target.index]];
             show_link("SELECTED: " + pick[0] + " and " + pick[1]);
-            let valid_recipes = get_valid_recipes(pick);
-            // valid_recipes = filter_recipes_on_cuisine(['polish'], valid_recipes)
-            // valid_recipes = filter_recipes_on_cooktime(['15-minutes-or-less'], valid_recipes)
-            // valid_recipes = filter_recipes_on_mealtime(['lunch'], valid_recipes)
 
-            try {
-                add_links(get_random_recipes(valid_recipes, 3));
-            } catch (e) {
-                no_links_found();
-            }
+            update_links(pick);
 
             let _cuisines = get_cuisines_relative(pick, [], [], []);
             let top_cuisines = limit(_cuisines, 10, (f, s) => s[1] - f[1]);
@@ -434,9 +429,9 @@ function selectLink(svg) {
             let _cooktimes = get_time_to_cook_relative(pick, [], [], []);
             let top_cooktimes = limit(_cooktimes, 10, (f, s) => s[1] - f[1]);
 
-            show_bar_chart(d3.select('#cuisinechart'), top_cuisines.map(x => x[1]), top_cuisines.map(x => x[0]))
-            show_bar_chart(d3.select('#mealtimeschart'), top_mealtimes.map(x => x[1]), top_mealtimes.map(x => x[0]))
-            show_pie_chart(d3.select('#cooktimeschart'), top_cooktimes.map(x => x[1]), top_cooktimes.map(x => x[0]))
+            show_bar_chart(d3.select('#cuisinechart'), top_cuisines.map(x => x[1]), top_cuisines.map(x => x[0]), cuisine_callback(pick));
+            show_bar_chart(d3.select('#mealtimeschart'), top_mealtimes.map(x => x[1]), top_mealtimes.map(x => x[0]), mealtime_callback(pick))
+            show_pie_chart(d3.select('#cooktimeschart'), top_cooktimes.map(x => x[1]), top_cooktimes.map(x => x[0]), cooktime_callback(pick))
         }
 
         var other = svg.select(".link").selectAll("path")
@@ -447,8 +442,90 @@ function selectLink(svg) {
     }
 }
 
-function selectChart(chart) {
-    return function (mouseEvent, obj, onClick) {
+function update_links(pick){
+    let valid_recipes = get_valid_recipes(pick);
+    valid_recipes = filter_recipes_on_cuisine(selected_cuisine ? [selected_cuisine] : [], valid_recipes)
+    valid_recipes = filter_recipes_on_cooktime(selected_cooktime ? [selected_cooktime] : [], valid_recipes)
+    valid_recipes = filter_recipes_on_mealtime(selected_mealtime ? [selected_mealtime] : [], valid_recipes)
+
+    try {
+        add_links(get_random_recipes(valid_recipes, 3));
+    } catch (e) {
+        no_links_found();
+    }
+}
+
+function cuisine_callback(pick) {
+    return function (value) {
+        selected_cuisine = value;
+        if (selected_mealtime === undefined) {
+            let _mealtimes = get_mealtimes_relative(pick,
+                selected_cooktime ? [selected_cooktime] : [],
+                [],
+                selected_cuisine ? [selected_cuisine] : []);
+            let top_mealtimes = limit(_mealtimes, 10, (f, s) => s[1] - f[1]);
+            show_bar_chart(d3.select('#mealtimeschart'), top_mealtimes.map(x => x[1]), top_mealtimes.map(x => x[0]), mealtime_callback(pick))
+        }
+        if (selected_cooktime === undefined) {
+            let _cooktimes = get_time_to_cook_relative(pick,
+                [],
+                selected_mealtime ? [selected_mealtime] : [],
+                selected_cuisine ? [selected_cuisine] : []);
+            let top_cooktimes = limit(_cooktimes, 10, (f, s) => s[1] - f[1]);
+            show_pie_chart(d3.select('#cooktimeschart'), top_cooktimes.map(x => x[1]), top_cooktimes.map(x => x[0]), cooktime_callback(pick))
+        }
+        update_links(pick);
+    }
+}
+
+function mealtime_callback(pick) {
+    return function (value) {
+        selected_mealtime = value;
+        if (selected_cuisine === undefined) {
+            let _cuisines = get_cuisines_relative(pick,
+                selected_cooktime ? [selected_cooktime] : [],
+                selected_mealtime ? [selected_mealtime] : [],
+                []);
+            let top_cuisines = limit(_cuisines, 10, (f, s) => s[1] - f[1]);
+            show_bar_chart(d3.select('#cuisinechart'), top_cuisines.map(x => x[1]), top_cuisines.map(x => x[0]), cuisine_callback(pick));
+        }
+        if (selected_cooktime === undefined) {
+            let _cooktimes = get_time_to_cook_relative(pick,
+                [],
+                selected_mealtime ? [selected_mealtime] : [],
+                selected_cuisine ? [selected_cuisine] : []);
+            let top_cooktimes = limit(_cooktimes, 10, (f, s) => s[1] - f[1]);
+            show_pie_chart(d3.select('#cooktimeschart'), top_cooktimes.map(x => x[1]), top_cooktimes.map(x => x[0]), cooktime_callback(pick))
+        }
+        update_links(pick);
+    }
+}
+
+function cooktime_callback(pick) {
+    return function (value) {
+        selected_cooktime = value;
+        if (selected_mealtime === undefined) {
+            let _mealtimes = get_mealtimes_relative(pick,
+                selected_cooktime ? [selected_cooktime] : [],
+                [],
+                selected_cuisine ? [selected_cuisine] : []);
+            let top_mealtimes = limit(_mealtimes, 10, (f, s) => s[1] - f[1]);
+            show_bar_chart(d3.select('#mealtimeschart'), top_mealtimes.map(x => x[1]), top_mealtimes.map(x => x[0]), mealtime_callback(pick))
+        }
+        if (selected_cuisine === undefined) {
+            let _cuisines = get_cuisines_relative(pick,
+                selected_cooktime ? [selected_cooktime] : [],
+                selected_mealtime ? [selected_mealtime] : [],
+                []);
+            let top_cuisines = limit(_cuisines, 10, (f, s) => s[1] - f[1]);
+            show_bar_chart(d3.select('#cuisinechart'), top_cuisines.map(x => x[1]), top_cuisines.map(x => x[0]), cuisine_callback(pick));
+        }
+        update_links(pick);
+    }
+}
+
+function selectChart(chart, onClick) {
+    return function (mouseEvent, obj) {
         var charElements = chart.selectAll("rect");
         if (charElements.size() == 0) {
             charElements = chart.selectAll("g.arc path")
@@ -459,6 +536,7 @@ function selectChart(chart) {
         if (clickedElement.classed(boolClass)) {
             clickedElement.classed(boolClass, false)
             opacity = 1;
+            onClick(undefined);
         } else {
             if (chart.selectAll(".clicked").size() > 0) {
                 return
