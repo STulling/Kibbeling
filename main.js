@@ -1,8 +1,7 @@
 var ingredients = []
 var connections = [];
 
-function generate_chord_chart(svg, connections, group_names)
-{
+function generate_chord_chart(svg, connections, group_names) {
     var res = d3.chord()
         .padAngle(0.05)     // padding between entities (black arc)
         .sortSubgroups(d3.descending)
@@ -105,7 +104,7 @@ function limit(items, top, comparator) {
 }
 
 function get_ids(items) {
-    return items.map(x => parseInt(x[0]))
+    return items.map(x => x[0])
 }
 
 function intersect(a, b) {
@@ -116,7 +115,9 @@ function generate_pairs(a, b, map = x => x) {
     let pair = []
     for (let i = 0; i < a.length; i++) {
         for (let j = i + 1; j < b.length; j++) {
-            pair.push([map(a[i]), map(b[j])])
+            if (map(a[i]) !== map(b[j])) {
+                pair.push([map(a[i]), map(b[j])])
+            }
         }
     }
     return pair
@@ -136,24 +137,25 @@ function generate_connection_matrix(ids, ingredients) {
 }
 
 function main() {
-    d3.csv("./data/PP_recipes.csv",
+    d3.csv("./data/recipes_parsed.csv",
         function (data) {
-            ingredients.push(JSON.parse(data.ingredient_ids))
+            let _ingredients = data.ingredients;
+            _ingredients = _ingredients.substring(1, _ingredients.length - 1);
+            _ingredients = _ingredients.split(', ');
+            for (let i = 0; i < _ingredients.length; i++) {
+                _ingredients[i] = _ingredients[i].substring(1, _ingredients[i].length - 1)
+            }
+            ingredients.push(_ingredients);
         }).then(function () {
-        fetch("./data/ingr_map.json")
-            .then(response => response.json())
-            .then(json => {
-                const top = 7;
+        const top = 7;
 
-                let item_counts = ingr_count_map(ingredients);
-                let top_items = limit(item_counts, top, (f, s) => s[1] - f[1]);
-                let top_ids = get_ids(top_items);
-                let top_names = id_to_ingr_names(json, top_ids);
+        let item_counts = ingr_count_map(ingredients);
+        let top_items = limit(item_counts, top, (f, s) => s[1] - f[1]);
+        let top_ids = get_ids(top_items);
 
-                connections = generate_connection_matrix(top_ids, ingredients);
+        connections = generate_connection_matrix(top_ids, ingredients);
 
-                generate_chord_chart(svg, connections, top_names)
-            })
+        generate_chord_chart(svg, connections, top_ids)
     });
 
     var svg = d3.select("#visualization")
