@@ -195,7 +195,7 @@ var unique_ingredients;
 
 function add_ingredient_from_form() {
     let text = document.getElementById("ingredientinput").value;
-    if (unique_ingredients.indexOf(text) != -1) {
+    if (unique_ingredients.indexOf(text.toLowerCase()) != -1) {
         addIngredient(text);
     }
     else {
