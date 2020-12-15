@@ -262,6 +262,10 @@ function createGraph(svg) {
         .on("mouseover", highlightIngredient(svg, 0))
         .on("mouseout", highlightIngredient(svg, 1));
 
+    d3.selectAll(".titles")
+        .on("mouseover", highlightIngredient(svg, 0))
+        .on("mouseout", highlightIngredient(svg, 1));
+
     d3.select(".link").selectAll("path")
         .on("click", selectLink(svg))
 }
