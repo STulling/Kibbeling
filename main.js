@@ -223,6 +223,10 @@ function selectLink(svg) {
             opacity = 1;
         } else {
             clickedPath.classed(boolClass, true)
+            // Selected following ingredients:
+            obj.source.index
+            obj.target.index
+
         }
 
         var other = svg.select(".link").selectAll("path")
