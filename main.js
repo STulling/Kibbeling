@@ -11,6 +11,7 @@ function generate_chord_chart(svg, connections, group_names) {
     svg
         .datum(res)
         .append("g")
+        .attr("class", "ingredient")
         .selectAll("g")
         .data(function (d) {
             return d.groups;
@@ -29,6 +30,7 @@ function generate_chord_chart(svg, connections, group_names) {
     svg
         .datum(res)
         .append("g")
+        .attr("class", "link")
         .selectAll("path")
         .data(function (d) {
             return d;
@@ -156,6 +158,16 @@ function main() {
         connections = generate_connection_matrix(top_ids, ingredients);
 
         generate_chord_chart(svg, connections, top_ids)
+        d3.select(".link").selectAll("path")
+            .on("mouseover", highlightLink(svg, 0))
+            .on("mouseout", highlightLink(svg, 1));
+
+        d3.select(".ingredient").selectAll("path")
+            .on("mouseover", highlightIngredient(svg, 0))
+            .on("mouseout", highlightIngredient(svg, 1));
+
+        d3.select(".link").selectAll("path")
+            .on("click", selectLink(svg))
     });
 
     var svg = d3.select("#visualization")
@@ -164,4 +176,56 @@ function main() {
         .attr("height", 1000)
         .append("g")
         .attr("transform", "translate(500,500)")
+
+
 }
+
+function selectLink(svg) {
+    return function (mouseEvent, obj) {
+        var clickedPath = svg.select(".link").selectAll("path")
+            .filter(path => obj == path)
+        const boolClass = "clicked"
+        var opacity = 0;
+        if (clickedPath.classed(boolClass)) {
+            clickedPath.classed(boolClass, false)
+            opacity = 1;
+        } else {
+            clickedPath.classed(boolClass, true)
+        }
+
+        var other = svg.select(".link").selectAll("path")
+            .filter(path => obj != path)
+
+
+        other.transition().style("stroke-opacity", opacity).style("fill-opacity", opacity)
+    }
+}
+
+function highlightIngredient(svg, opacityOther) {
+    return function(mouseEvent, obj) {
+        if (svg.select(".link").selectAll(".clicked").size() > 0) {
+            return
+        }
+        svg.select(".link").selectAll("path")
+            .filter(function(path) {
+                return path.source.index != obj.index && path.target.index != obj.index;
+            })
+            .transition()
+            .style("stroke-opacity", opacityOther)
+            .style("fill-opacity", opacityOther);
+    };
+}
+function highlightLink(svg, opacityOther) {
+    return function(mouseEvent, obj) {
+        if (svg.select(".link").selectAll(".clicked").size() > 0) {
+            return
+        }
+        svg.select(".link").selectAll("path")
+            .filter(function(path) {
+                return obj != path;
+            })
+            .transition()
+            .style("stroke-opacity", opacityOther)
+            .style("fill-opacity", opacityOther);
+    };
+};
