@@ -196,7 +196,12 @@ var unique_ingredients;
 function add_ingredient_from_form() {
     let text = document.getElementById("ingredientinput").value;
     if (unique_ingredients.indexOf(text) != -1) {
-        addIngredient(text);
+        if (top_items.filter(item => item[0] == text).length == 0) {
+            addIngredient(text);
+        }
+        else {
+            alert("Ingredient is already present")
+        }
     }
     else {
         alert("Invalid ingredient");
