@@ -73,6 +73,21 @@ function generate_chord_chart(svg, connections, group_names) {
         .text(function (d, i) {
             return group_names[i];
         });
+
+    g.append("circle")
+        .attr("class", "remove")
+        .attr("onclick", function (d) {
+            return "removeIngredient(\"" + group_names[d.index] + "\")"
+        })
+        .attr("transform", function (d) {
+            return "rotate(" + (d.angle * 180 / Math.PI - 90) + ")"
+                + "translate(" + (400 + 25) + ")";
+        })
+        .attr("cx", 5)
+        .attr("cy", 5)
+        .attr("r", 5)
+        .attr("fill", "red")
+
 }
 
 function matrix(m, n) {
@@ -270,6 +285,27 @@ function add_links(valid_recipes) {
     }
 }
 
+var top_items;
+var top_ids;
+
+function removeIngredient(ingredient) {
+    top_items = top_items.filter((x) => x[0] != ingredient);
+    top_ids = get_ids(top_items);
+    connections = generate_connection_matrix(top_ids, ingredients);
+    let graph = d3.select("#visualization").select("svg").select("g")
+    graph.selectAll("*").remove();
+    generate_chord_chart(graph, connections, top_ids)
+}
+
+function addIngredient(ingredient) {
+    top_items.push([ingredient, 0]);
+    top_ids = get_ids(top_items);
+    connections = generate_connection_matrix(top_ids, ingredients);
+    let graph = d3.select("#visualization").select("svg").select("g")
+    graph.selectAll("*").remove();
+    generate_chord_chart(graph, connections, top_ids)
+}
+
 function main() {
     d3.csv("./data/recipes_parsed.csv",
         function (data) {
@@ -282,8 +318,8 @@ function main() {
         const top = 7;
 
         let item_counts = ingr_count_map(ingredients);
-        let top_items = limit(item_counts, top, (f, s) => s[1] - f[1]);
-        let top_ids = get_ids(top_items);
+        top_items = limit(item_counts, top, (f, s) => s[1] - f[1]);
+        top_ids = get_ids(top_items);
 
         connections = generate_connection_matrix(top_ids, ingredients);
 
