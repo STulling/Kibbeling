@@ -13,11 +13,11 @@ function show_pie_chart(svg, values, labels) {
 
     var width = svg.attr("width"),
         height = svg.attr("height"),
-        radius = Math.min(width, height) / 2,
+        radius = Math.min(width, height) / 2
 
-        svg = svg.append("svg")
-            .attr("height", height)
-            .attr("width", width)
+    svg = svg.append("svg")
+        .attr("height", height)
+        .attr("width", width)
 
     var g = svg.append("g").attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
 
@@ -30,7 +30,6 @@ function show_pie_chart(svg, values, labels) {
         });
 
     var data_ready = pie(data)
-    console.log(data_ready)
 
     // Generate the arcs
     var arc = d3.arc()
@@ -54,7 +53,6 @@ function show_pie_chart(svg, values, labels) {
     var text = svg.select(".labels").selectAll("text")
         .data(data_ready);
 
-    console.log(arc.centroid(data_ready[0]))
     text.enter()
         .append("text")
         .text(function (d) {

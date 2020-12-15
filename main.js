@@ -275,6 +275,8 @@ function string_to_array(string) {
 }
 
 function add_links(valid_recipes) {
+    d3.select('#randomrecipes').selectAll('a').remove();
+    d3.select('#randomrecipes').selectAll('br').remove();
     let links = []
     for (let recipe of valid_recipes) {
         links.push("https://www.food.com/recipe/" + recipe)
@@ -287,23 +289,35 @@ function add_links(valid_recipes) {
 
 var top_items;
 var top_ids;
+var unique_ingredients;
+
+function add_ingredient_from_form() {
+    let text = document.getElementById("ingredientinput").value.toLowerCase();
+    if (unique_ingredients.indexOf(text) != -1) {
+        if (top_items.filter(item => item[0] == text).length == 0) {
+            addIngredient(text);
+        }
+        else {
+            alert("Ingredient is already present")
+        }
+    }
+    else {
+        alert("Invalid ingredient");
+    }
+}
 
 function removeIngredient(ingredient) {
     top_items = top_items.filter((x) => x[0] != ingredient);
     top_ids = get_ids(top_items);
     connections = generate_connection_matrix(top_ids, ingredients);
-    let graph = d3.select("#visualization").select("svg").select("g")
-    graph.selectAll("*").remove();
-    generate_chord_chart(graph, connections, top_ids)
+    refreshGraph()
 }
 
 function addIngredient(ingredient) {
     top_items.push([ingredient, 0]);
     top_ids = get_ids(top_items);
     connections = generate_connection_matrix(top_ids, ingredients);
-    let graph = d3.select("#visualization").select("svg").select("g")
-    graph.selectAll("*").remove();
-    generate_chord_chart(graph, connections, top_ids)
+    refreshGraph()
 }
 
 function main() {
@@ -318,40 +332,15 @@ function main() {
         const top = 7;
 
         let item_counts = ingr_count_map(ingredients);
+        unique_ingredients = Object.keys(item_counts);
+        autocomplete(document.getElementById("ingredientinput"), unique_ingredients);
+
         top_items = limit(item_counts, top, (f, s) => s[1] - f[1]);
         top_ids = get_ids(top_items);
-
         connections = generate_connection_matrix(top_ids, ingredients);
 
-        generate_chord_chart(svg, connections, top_ids)
-        d3.select(".link").selectAll("path")
-            .on("mouseover", highlightLink(svg, 0))
-            .on("mouseout", highlightLink(svg, 1));
 
-        d3.select(".ingredient").selectAll("path")
-            .on("mouseover", highlightIngredient(svg, 0))
-            .on("mouseout", highlightIngredient(svg, 1));
-
-        d3.select(".link").selectAll("path")
-            .on("click", selectLink(svg))
-
-        let pick = ['butter', 'sugar'];
-
-        add_links(get_random_recipes(pick, 3));
-
-        let cuisines = get_cuisines_relative(pick);
-        let top_cuisines = limit(cuisines, 5, (f, s) => s[1] - f[1]);
-        console.log(top_cuisines);
-
-        let mealtimes = get_mealtimes_relative(pick);
-        let top_mealtimes = limit(mealtimes, 5, (f, s) => s[1] - f[1]);
-
-        let cooktimes = get_time_to_cook_relative(pick);
-        let top_cooktimes = limit(cooktimes, 5, (f, s) => s[1] - f[1]);
-
-        show_bar_chart(d3.select('#cuisinechart'), top_cuisines.map(x => x[1]), top_cuisines.map(x => x[0]))
-        show_bar_chart(d3.select('#mealtimeschart'), top_mealtimes.map(x => x[1]), top_mealtimes.map(x => x[0]))
-        show_pie_chart(d3.select('#cooktimeschart'), top_cooktimes.map(x => x[1]), top_cooktimes.map(x => x[0]))
+        createGraph(svg)
     });
 
     var svg = d3.select("#visualization")
@@ -360,6 +349,29 @@ function main() {
         .attr("height", 1000)
         .append("g")
         .attr("transform", "translate(500,500)")
+}
+
+function refreshGraph() {
+    let graph = d3.select("#visualization").select("svg").select("g")
+    graph.selectAll("*").remove();
+    createGraph(graph)
+}
+function createGraph(svg) {
+    generate_chord_chart(svg, connections, top_ids)
+    d3.select(".link").selectAll("path")
+        .on("mouseover", highlightLink(svg, 0))
+        .on("mouseout", highlightLink(svg, 1));
+
+    d3.select(".ingredient").selectAll("path")
+        .on("mouseover", highlightIngredient(svg, 0))
+        .on("mouseout", highlightIngredient(svg, 1));
+
+    d3.selectAll(".titles")
+        .on("mouseover", highlightIngredient(svg, 0))
+        .on("mouseout", highlightIngredient(svg, 1));
+
+    d3.select(".link").selectAll("path")
+        .on("click", selectLink(svg))
 }
 
 function selectLink(svg) {
@@ -372,7 +384,29 @@ function selectLink(svg) {
             clickedPath.classed(boolClass, false)
             opacity = 1;
         } else {
+            // We already have something selected, thus return.
+            if (svg.select(".link").selectAll(".clicked").size() > 0) {
+                return
+            }
             clickedPath.classed(boolClass, true)
+            // Selected following ingredients:
+            let pick = [top_ids[obj.source.index], top_ids[obj.target.index]];
+            console.log(pick)
+            add_links(get_random_recipes(pick, 3));
+
+            let cuisines = get_cuisines_relative(pick);
+            let top_cuisines = limit(cuisines, 5, (f, s) => s[1] - f[1]);
+            console.log(top_cuisines);
+
+            let mealtimes = get_mealtimes_relative(pick);
+            let top_mealtimes = limit(mealtimes, 5, (f, s) => s[1] - f[1]);
+
+            let cooktimes = get_time_to_cook_relative(pick);
+            let top_cooktimes = limit(cooktimes, 5, (f, s) => s[1] - f[1]);
+
+            show_bar_chart(d3.select('#cuisinechart'), top_cuisines.map(x => x[1]), top_cuisines.map(x => x[0]))
+            show_bar_chart(d3.select('#mealtimeschart'), top_mealtimes.map(x => x[1]), top_mealtimes.map(x => x[0]))
+            show_pie_chart(d3.select('#cooktimeschart'), top_cooktimes.map(x => x[1]), top_cooktimes.map(x => x[0]))
         }
 
         var other = svg.select(".link").selectAll("path")
