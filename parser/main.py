@@ -1,3 +1,4 @@
+import re
 from ast import literal_eval
 
 import nltk
@@ -74,12 +75,16 @@ def cuisine(text):
     return pd.Series([cuisines, cooking_time, courses, times], index=['cuisine', 'cooking time', 'courses', 'times'])
 
 
+def name_to_link(text):
+    return re.sub(r'\s+', r'-', str(text[0])) + f'-{text[1]}'
+
+
 def main():
-    df = read_csv("recipes_tokenized_cuisine.csv")
-    # df = pd.concat([df[['id', 'ingredients']], df["tags"].apply(cuisine)], axis=1)
-    # print(df)
-    df[['id', 'ingredients', 'cuisine', 'cooking time', 'courses', 'times']].to_csv("recipes_tokenized_cuisine.csv", index=False)
-    print(read_csv("recipes_tokenized_cuisine.csv"))
+    df = read_csv("recipes_tokenized_lemma.csv")
+    df = pd.concat([df[['id', 'name', 'ingredients']], df["tags"].apply(cuisine)], axis=1)
+    df['name'] = df[['name', 'id']].apply(name_to_link, axis=1)
+    df[['id', 'name', 'ingredients', 'cuisine', 'cooking time', 'courses', 'times']].to_csv("recipes_parsed.csv", index=False)
+    print(read_csv("recipes_parsed.csv"))
 
 
 if __name__ == '__main__':
