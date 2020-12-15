@@ -157,24 +157,34 @@ function generate_connection_matrix(ids, ingredients) {
     return connections
 }
 
-function get_cuisines(_ingredients) {
-    let cuisine_count = {};
-    for (let i = 0; i < cuisines.length; i++) {
-        let intersection = intersect(_ingredients, ingredients[i]);
-        if (intersection.length === _ingredients.length) {
-            for (let cuisine of cuisines[i]) {
-                if (cuisine) {
-                    cuisine_count[cuisine] = cuisine_count[cuisine] ? cuisine_count[cuisine] + 1 / ingredients[i].length : 1 / ingredients[i].length;
+function get_count(main, _ingredients, _cooktimes, _mealtimes, _cuisines) {
+    let count = {};
+    for (let i = 0; i < main.length; i++) {
+        let int_ingredients = intersect(_ingredients, ingredients[i]);
+        let int_cooktimes = intersect(_cooktimes, cooktimes[i]);
+        let int_mealtimes = intersect(_mealtimes, mealtimes[i]);
+        let int_cuisines = intersect(_cuisines, cuisines[i]);
+        if (int_ingredients.length === _ingredients.length
+            && (_cooktimes.length === 0 || int_cooktimes.length > 0)
+            && (_mealtimes.length === 0 || int_mealtimes.length > 0)
+            && (_cuisines.length === 0 || int_cuisines.length > 0)) {
+            for (let entry of main[i]) {
+                if (entry) {
+                    count[entry] = count[entry] ? count[entry] + 1 : 1;
                 }
             }
         }
     }
-    return cuisine_count;
+    return count;
 }
 
-function get_cuisines_relative(_ingredients) {
-    let limited = get_cuisines(_ingredients);
-    let all = get_cuisines([]);
+function get_cuisines(_ingredients, _cooktimes, _mealtimes, _cuisines) {
+    return get_count(cuisines, _ingredients, _cooktimes, _mealtimes, _cuisines);
+}
+
+function get_cuisines_relative(_ingredients, _cooktimes=[], _mealtimes=[], _cuisines=[]) {
+    let limited = get_cuisines(_ingredients, _cooktimes, _mealtimes, _cuisines);
+    let all = get_cuisines([], _cooktimes, _mealtimes, _cuisines);
     let relative = {}
     for (let cuisine in limited) {
         relative[cuisine] = limited[cuisine] / all[cuisine] * 100;
@@ -182,27 +192,13 @@ function get_cuisines_relative(_ingredients) {
     return relative;
 }
 
-function get_mealtimes(_ingredients) {
-    let mealtimes_count = {};
-    for (let i = 0; i < mealtimes.length; i++) {
-        let intersection = intersect(_ingredients, ingredients[i]);
-        if (intersection.length === _ingredients.length) {
-            for (let mealtime of mealtimes[i]) {
-                if (mealtime === "dinner-party") {
-                    mealtime = "dinner";
-                }
-                if (mealtime) {
-                    mealtimes_count[mealtime] = mealtimes_count[mealtime] ? mealtimes_count[mealtime] + 1 : 1;
-                }
-            }
-        }
-    }
-    return mealtimes_count;
+function get_mealtimes(_ingredients, _cooktimes, _mealtimes, _cuisines) {
+    return get_count(mealtimes, _ingredients, _cooktimes, _mealtimes, _cuisines);
 }
 
-function get_mealtimes_relative(_ingredients) {
-    let limited = get_mealtimes(_ingredients);
-    let all = get_mealtimes([]);
+function get_mealtimes_relative(_ingredients, _cooktimes=[], _mealtimes=[], _cuisines=[]) {
+    let limited = get_mealtimes(_ingredients, _cooktimes, _mealtimes, _cuisines);
+    let all = get_mealtimes([], _cooktimes, _mealtimes, _cuisines);
     let relative = {}
     for (let mealtime in limited) {
         relative[mealtime] = limited[mealtime] / all[mealtime] * 100;
@@ -211,23 +207,12 @@ function get_mealtimes_relative(_ingredients) {
 }
 
 
-function get_time_to_cook(_ingredients) {
-    let cooktimes_count = {};
-    for (let i = 0; i < cooktimes.length; i++) {
-        let intersection = intersect(_ingredients, ingredients[i]);
-        if (intersection.length === _ingredients.length) {
-            for (let cooktime of cooktimes[i]) {
-                if (cooktime) {
-                    cooktimes_count[cooktime] = cooktimes_count[cooktime] ? cooktimes_count[cooktime] + 1 : 1;
-                }
-            }
-        }
-    }
-    return cooktimes_count;
+function get_time_to_cook(_ingredients, _cooktimes, _mealtimes, _cuisines) {
+    return get_count(cooktimes, _ingredients, _cooktimes, _mealtimes, _cuisines);
 }
 
-function get_time_to_cook_relative(_ingredients) {
-    let limited = get_time_to_cook(_ingredients);
+function get_time_to_cook_relative(_ingredients, _cooktimes=[], _mealtimes=[], _cuisines=[]) {
+    let limited = get_time_to_cook(_ingredients, _cooktimes, _mealtimes, _cuisines);
     let relative = {}
     let sum = 0;
     for (let cooktime in limited) {
@@ -253,7 +238,7 @@ function get_random_from_array(arr, n) {
     return result;
 }
 
-function get_random_recipes(_ingredients, n) {
+function get_valid_recipes(_ingredients) {
     let valid_recipes = {}
     for (let i = 0; i < names.length; i++) {
         let intersection = intersect(_ingredients, ingredients[i]);
@@ -261,7 +246,36 @@ function get_random_recipes(_ingredients, n) {
             valid_recipes[names[i]] = 2 / ingredients[i].length;
         }
     }
-    return get_random_from_array(Object.keys(valid_recipes), n);
+    return valid_recipes;
+}
+
+function filter_recipes_on_cooktime(_time, valid_recipes) {
+    return filter_x_on_y(names, cooktimes, _time, valid_recipes);
+}
+
+function filter_recipes_on_cuisine(_cuisine, valid_recipes) {
+    return filter_x_on_y(names, cuisines, _cuisine, valid_recipes);
+}
+
+function filter_recipes_on_mealtime(_mealtime, valid_recipes) {
+    return filter_x_on_y(names, mealtimes, _mealtime, valid_recipes);
+}
+
+function filter_x_on_y(x, y, selection, recipes) {
+    let _recipes = Object.assign({}, recipes);
+    for (let i = 0; i < y.length; i++) {
+        let intersection = intersect(selection, y[i])
+        if (intersection.length === 0) {
+            if (x[i] in _recipes) {
+                delete _recipes[x[i]];
+            }
+        }
+    }
+    return _recipes;
+}
+
+function get_random_recipes(recipes, n) {
+    return get_random_from_array(Object.keys(recipes), n);
 }
 
 function string_to_array(string) {
@@ -275,8 +289,7 @@ function string_to_array(string) {
 }
 
 function add_links(valid_recipes) {
-    d3.select('#randomrecipes').selectAll('a').remove();
-    d3.select('#randomrecipes').selectAll('br').remove();
+    d3.select('#randomrecipes').selectAll('*').remove();
     let links = []
     for (let recipe of valid_recipes) {
         links.push("https://www.food.com/recipe/" + recipe)
@@ -285,6 +298,11 @@ function add_links(valid_recipes) {
         d3.select('#randomrecipes').append('a').attr('href', links[i]).html(valid_recipes[i]);
         d3.select('#randomrecipes').append('br');
     }
+}
+
+function no_links_found() {
+    d3.select('#randomrecipes').selectAll('*').remove();
+    d3.select('#randomrecipes').append('p').html("NO RECIPES FOUND");
 }
 
 var top_items;
@@ -296,12 +314,10 @@ function add_ingredient_from_form() {
     if (unique_ingredients.indexOf(text) != -1) {
         if (top_items.filter(item => item[0] == text).length == 0) {
             addIngredient(text);
-        }
-        else {
+        } else {
             alert("Ingredient is already present")
         }
-    }
-    else {
+    } else {
         alert("Invalid ingredient");
     }
 }
@@ -320,7 +336,7 @@ function addIngredient(ingredient) {
     refreshGraph()
 }
 
-function show_link(link){
+function show_link(link) {
     d3.select("#selected").selectAll('p').remove();
     d3.select("#selected").append('p').html(link);
 }
@@ -361,6 +377,7 @@ function refreshGraph() {
     graph.selectAll("*").remove();
     createGraph(graph)
 }
+
 function createGraph(svg) {
     generate_chord_chart(svg, connections, top_ids)
     d3.select(".link").selectAll("path")
@@ -397,18 +414,25 @@ function selectLink(svg) {
             // Selected following ingredients:
             let pick = [top_ids[obj.source.index], top_ids[obj.target.index]];
             show_link("SELECTED: " + pick[0] + " and " + pick[1]);
-            console.log(pick)
-            add_links(get_random_recipes(pick, 3));
+            let valid_recipes = get_valid_recipes(pick);
+            // valid_recipes = filter_recipes_on_cuisine(['polish'], valid_recipes)
+            // valid_recipes = filter_recipes_on_cooktime(['15-minutes-or-less'], valid_recipes)
+            // valid_recipes = filter_recipes_on_mealtime(['lunch'], valid_recipes)
 
-            let cuisines = get_cuisines_relative(pick);
-            let top_cuisines = limit(cuisines, 5, (f, s) => s[1] - f[1]);
-            console.log(top_cuisines);
+            try {
+                add_links(get_random_recipes(valid_recipes, 3));
+            } catch (e) {
+                no_links_found();
+            }
 
-            let mealtimes = get_mealtimes_relative(pick);
-            let top_mealtimes = limit(mealtimes, 5, (f, s) => s[1] - f[1]);
+            let _cuisines = get_cuisines_relative(pick, [], [], []);
+            let top_cuisines = limit(_cuisines, 10, (f, s) => s[1] - f[1]);
 
-            let cooktimes = get_time_to_cook_relative(pick);
-            let top_cooktimes = limit(cooktimes, 5, (f, s) => s[1] - f[1]);
+            let _mealtimes = get_mealtimes_relative(pick, [], [], []);
+            let top_mealtimes = limit(_mealtimes, 10, (f, s) => s[1] - f[1]);
+
+            let _cooktimes = get_time_to_cook_relative(pick, [], [], []);
+            let top_cooktimes = limit(_cooktimes, 10, (f, s) => s[1] - f[1]);
 
             show_bar_chart(d3.select('#cuisinechart'), top_cuisines.map(x => x[1]), top_cuisines.map(x => x[0]))
             show_bar_chart(d3.select('#mealtimeschart'), top_mealtimes.map(x => x[1]), top_mealtimes.map(x => x[0]))
