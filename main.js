@@ -320,6 +320,11 @@ function addIngredient(ingredient) {
     refreshGraph()
 }
 
+function show_link(link){
+    d3.select("#selected").selectAll('p').remove();
+    d3.select("#selected").append('p').html(link);
+}
+
 function main() {
     d3.csv("./data/recipes_parsed.csv",
         function (data) {
@@ -391,6 +396,7 @@ function selectLink(svg) {
             clickedPath.classed(boolClass, true)
             // Selected following ingredients:
             let pick = [top_ids[obj.source.index], top_ids[obj.target.index]];
+            show_link("SELECTED: " + pick[0] + " and " + pick[1]);
             console.log(pick)
             add_links(get_random_recipes(pick, 3));
 
