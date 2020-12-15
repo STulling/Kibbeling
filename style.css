@@ -1,11 +1,11 @@
 body {
-
+    display: flex;
 }
 #info {
     background-color: #EEE;
     border: 2px solid #cfcfcf;
     border-radius: 9px;
     padding: 7px;
-    width: 200px;
-    height: 150px;
+    width: 650px;
+    height: 300px;
 }

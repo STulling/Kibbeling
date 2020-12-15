@@ -3,8 +3,8 @@ function show_bar_chart(svg, values, labels) {
     height = svg.attr("height")
     width = svg.attr("width")
 
-    var leftMargin = 20;
-    var bottomMargin = 20;
+    var leftMargin = 30;
+    var bottomMargin = 30;
 
     svg = svg.append("svg")
             .attr("height", height)

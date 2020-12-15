@@ -53,7 +53,7 @@ course = [
 ]
 
 cooking_time = [
-    '15-minutes-or-less'
+    '15-minutes-or-less',
     '30-minutes-or-less',
     '60-minutes-or-less',
     '4-hours-or-less',
