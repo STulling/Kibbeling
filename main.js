@@ -196,4 +196,6 @@ function main() {
         .attr("height", 1000)
         .append("g")
         .attr("transform", "translate(500,500)")
+
+    show_bar_chart(d3.select('#cuisinechart'), [75, 25],  ['EU', 'US'])
 }
