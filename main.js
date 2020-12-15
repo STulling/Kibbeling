@@ -196,18 +196,14 @@ function removeIngredient(ingredient) {
     top_items = top_items.filter((x) => x[0] != ingredient);
     top_ids = get_ids(top_items);
     connections = generate_connection_matrix(top_ids, ingredients);
-    let graph = d3.select("#visualization").select("svg").select("g")
-    graph.selectAll("*").remove();
-    generate_chord_chart(graph, connections, top_ids)
+    refreshGraph()
 }
 
 function addIngredient(ingredient) {
     top_items.push([ingredient, 0]);
     top_ids = get_ids(top_items);
     connections = generate_connection_matrix(top_ids, ingredients);
-    let graph = d3.select("#visualization").select("svg").select("g")
-    graph.selectAll("*").remove();
-    generate_chord_chart(graph, connections, top_ids)
+    refreshGraph()
 }
 
 function main() {
@@ -222,20 +218,9 @@ function main() {
         let item_counts = ingr_count_map(ingredients);
         top_items = limit(item_counts, top, (f, s) => s[1] - f[1]);
         top_ids = get_ids(top_items);
-
         connections = generate_connection_matrix(top_ids, ingredients);
 
-        generate_chord_chart(svg, connections, top_ids)
-        d3.select(".link").selectAll("path")
-            .on("mouseover", highlightLink(svg, 0))
-            .on("mouseout", highlightLink(svg, 1));
-
-        d3.select(".ingredient").selectAll("path")
-            .on("mouseover", highlightIngredient(svg, 0))
-            .on("mouseout", highlightIngredient(svg, 1));
-
-        d3.select(".link").selectAll("path")
-            .on("click", selectLink(svg))
+        createGraph(svg)
     });
 
     var svg = d3.select("#visualization")
@@ -246,6 +231,25 @@ function main() {
         .attr("transform", "translate(500,500)")
 
     show_bar_chart(d3.select('#cuisinechart'), [75, 25],  ['EU', 'US'])
+}
+
+function refreshGraph() {
+    let graph = d3.select("#visualization").select("svg").select("g")
+    graph.selectAll("*").remove();
+    createGraph(graph)
+}
+function createGraph(svg) {
+    generate_chord_chart(svg, connections, top_ids)
+    d3.select(".link").selectAll("path")
+        .on("mouseover", highlightLink(svg, 0))
+        .on("mouseout", highlightLink(svg, 1));
+
+    d3.select(".ingredient").selectAll("path")
+        .on("mouseover", highlightIngredient(svg, 0))
+        .on("mouseout", highlightIngredient(svg, 1));
+
+    d3.select(".link").selectAll("path")
+        .on("click", selectLink(svg))
 }
 
 function selectLink(svg) {
@@ -260,8 +264,7 @@ function selectLink(svg) {
         } else {
             clickedPath.classed(boolClass, true)
             // Selected following ingredients:
-            obj.source.index
-            obj.target.index
+            console.log(top_ids[obj.source.index] + " " + top_ids[obj.target.index])
 
         }
 
