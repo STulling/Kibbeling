@@ -1,0 +1,5 @@
+exceptions = [
+    'olive',
+    'garlic',
+    'butter'
+]
