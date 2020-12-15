@@ -191,6 +191,17 @@ function string_to_array(string) {
 
 var top_items;
 var top_ids;
+var unique_ingredients;
+
+function add_ingredient_from_form() {
+    let text = document.getElementById("ingredientinput").value;
+    if (unique_ingredients.indexOf(text) != -1) {
+        addIngredient(text);
+    }
+    else {
+        alert("Invalid ingredient");
+    }
+}
 
 function removeIngredient(ingredient) {
     top_items = top_items.filter((x) => x[0] != ingredient);
@@ -220,6 +231,9 @@ function main() {
         const top = 7;
 
         let item_counts = ingr_count_map(ingredients);
+        unique_ingredients = Object.keys(item_counts);
+        autocomplete(document.getElementById("ingredientinput"), unique_ingredients);
+
         top_items = limit(item_counts, top, (f, s) => s[1] - f[1]);
         top_ids = get_ids(top_items);
 

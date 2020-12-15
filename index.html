@@ -1,10 +1,17 @@
 <head>
 	<script type="text/javascript" src="./d3/d3.js"></script>
+	<script type="text/javascript" src="autocomplete.js"></script>
 	<script type="text/javascript" src="main.js"></script>
 	<script type="text/javascript" src="bar-chart.js"></script>
 	<link rel="stylesheet" href="style.css">
 </head>
 <body onload="main();">
+	<form autocomplete="off" action="javascript:add_ingredient_from_form()">
+	  <div class="autocomplete" style="width:300px;">
+		<input id="ingredientinput" type="text" placeholder="Ingredient">
+	  </div>
+	  <input type="submit">
+	</form>
 	<div id="visualization"></div>
 	<div id="info">
 		<div id="selected">None</div>
