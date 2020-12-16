@@ -347,6 +347,7 @@ function string_to_array(string) {
     array = array.split(', ');
     for (let i = 0; i < array.length; i++) {
         array[i] = array[i].substring(1, array[i].length - 1)
+        array[i] = array[i] === "dinner-party" ? "dinner" : array[i];
     }
     return array
 }
@@ -639,7 +640,7 @@ function mealtime_to_number(_mealtime){
         case "breakfast": return 1;
         case "brunch": return 2;
         case "lunch": return 3;
-        case "dinner-party": return 4;
+        case "dinner": return 4;
         default: return -1;
     }
 }
