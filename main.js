@@ -470,7 +470,7 @@ function selectLink(svg) {
         var clickedPath = svg.select(".link").selectAll("path")
             .filter(path => obj == path)
         const boolClass = "clicked"
-        var opacity = 0;
+        var opacity = 0.2;
         if (clickedPath.classed(boolClass)) {
             clickedPath.classed(boolClass, false)
             opacity = 1;
