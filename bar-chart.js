@@ -7,8 +7,8 @@ function show_bar_chart(svg, values, labels, onClick) {
     var bottomMargin = 30;
 
     svg = svg.append("svg")
-            .attr("height", height)
-            .attr("width", width)
+            .attr("height", parseInt(height) + 2 * bottomMargin)
+            .attr("width", parseInt(width) + 2 * leftMargin)
         .append("g")
             .attr("transform",
               "translate(" + leftMargin + "," + 0 + ")");
@@ -47,7 +47,7 @@ function show_bar_chart(svg, values, labels, onClick) {
         .attr("fill", "#268d6c")
         .attr("value", function (d) {
             return d.Key
-        })
+        }).style("cursor", "pointer")
 
     svg.selectAll("rect").on("click", selectChart(svg, onClick));
 }

@@ -99,7 +99,8 @@ function show_pie_chart(svg, values, labels, onClick) {
         })
         .attr("d", arc)
         .attr("value", function (d) {
-            return d.data.label });
+            return d.data.label })
+        .style("cursor", "pointer");
 
     svg.selectAll("g.arc").on("click", selectChart(svg, onClick));
 }

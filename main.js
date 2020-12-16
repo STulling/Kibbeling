@@ -99,6 +99,7 @@ function generate_chord_chart(svg, connections, group_names) {
             return "url(#" + getGradID(d) + ")";
         })
         .style("stroke", "none")
+        .style("cursor", "pointer")
         .style("opacity", 0.7);
 
 
@@ -114,7 +115,7 @@ function generate_chord_chart(svg, connections, group_names) {
             d.angle = (d.startAngle + d.endAngle) / 2;
         })
         .attr("class", "titles")
-        .attr("dy", function(d) {
+        .attr("dy", function (d) {
             return d.angle > Math.PI ? "0em" : "0.5em";
         })
         .attr("text-anchor", function (d) {
@@ -477,6 +478,7 @@ function selectLink(svg) {
         if (clickedPath.classed(boolClass)) {
             clickedPath.classed(boolClass, false)
             opacity = 1;
+            svg.select(".link").selectAll("path").style("cursor", "pointer");
         } else {
             // We already have something selected, thus return.
             if (svg.select(".link").selectAll(".clicked").size() > 0) {
@@ -506,6 +508,9 @@ function selectLink(svg) {
             show_bar_chart(d3.select('#cuisinechart'), top_cuisines.map(x => x[1]), top_cuisines.map(x => x[0]), cuisine_callback(pick));
             show_bar_chart(d3.select('#mealtimeschart'), top_mealtimes.map(x => x[1]), top_mealtimes.map(x => x[0]), mealtime_callback(pick))
             show_pie_chart(d3.select('#cooktimeschart'), top_cooktimes.map(x => x[1]), top_cooktimes.map(x => x[0]), cooktime_callback(pick))
+
+            svg.select(".link").selectAll("path").style("cursor", "default");
+            clickedPath.style("cursor", "pointer");
         }
 
         var other = svg.select(".link").selectAll("path")
@@ -558,7 +563,7 @@ function update_charts(pick) {
 }
 
 function cuisine_callback(pick) {
-    return function(value){
+    return function (value) {
         selected_cuisine = value;
         update_charts(pick);
     }
@@ -581,7 +586,7 @@ function cooktime_callback(pick) {
 function selectChart(chart, onClick) {
     return function (mouseEvent, obj) {
         var charElements = chart.selectAll("rect");
-        if (charElements.size() == 0) {
+        if (charElements.size() === 0) {
             charElements = chart.selectAll("g.arc path")
         }
         const clickedElement = charElements.filter(elem => elem == obj)
@@ -591,12 +596,15 @@ function selectChart(chart, onClick) {
             clickedElement.classed(boolClass, false)
             opacity = 1;
             onClick(undefined);
+            charElements.style("cursor", "pointer");
         } else {
             if (chart.selectAll(".clicked").size() > 0) {
                 return
             }
             clickedElement.classed(boolClass, true)
             onClick(clickedElement.attr("value"))
+            charElements.style("cursor", "default");
+            clickedElement.style("cursor", "pointer");
         }
         const other = charElements.filter(elem => elem != obj);
 
@@ -635,12 +643,17 @@ function highlightLink(svg, opacityOther) {
     };
 }
 
-function mealtime_to_number(_mealtime){
+function mealtime_to_number(_mealtime) {
     switch (_mealtime) {
-        case "breakfast": return 1;
-        case "brunch": return 2;
-        case "lunch": return 3;
-        case "dinner": return 4;
-        default: return -1;
+        case "breakfast":
+            return 1;
+        case "brunch":
+            return 2;
+        case "lunch":
+            return 3;
+        case "dinner":
+            return 4;
+        default:
+            return -1;
     }
 }
