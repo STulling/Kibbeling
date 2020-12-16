@@ -7,18 +7,20 @@
 	<link rel="stylesheet" href="style.css">
 </head>
 <body onload="main();">
+	<div id="main">
 	<form autocomplete="off" action="javascript:add_ingredient_from_form()">
 	  <div class="autocomplete" style="width:300px;">
-		<input id="ingredientinput" type="text" placeholder="Ingredient">
+		<input id="ingredientinput" type="text" placeholder="Ingredient to add">
 	  </div>
 	  <input type="submit">
 	</form>
 	<div id="visualization"></div>
+	</div>
 	<div id="info">
 		<div id="selected"></div>
 		<div id="randomrecipes"></div>
-		<div id="cuisinechart" width="600" height="200"></div>
-		<div id="mealtimeschart" width="600" height="200"></div>
+		<div id="cuisinechart" width="800" height="200"></div>
+		<div id="mealtimeschart" width="800" height="200"></div>
 		<div id="cooktimeschart" width="800" height="400"></div>
 	</div>
 </body>

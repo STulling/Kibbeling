@@ -4,19 +4,17 @@ body {
 }
 #info {
     background-color: #EEE;
-    border: 2px solid #cfcfcf;
     border-radius: 9px;
     padding: 7px;
-    width: 650px;
-    height: 300px;
+    margin: 10px;
 }
 text.titles {
     text-transform: capitalize;
 }
 
-
-
-
+#info #selected{
+    text-align: center;
+}
 
 
 

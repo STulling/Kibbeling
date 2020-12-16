@@ -113,8 +113,10 @@ function generate_chord_chart(svg, connections, group_names) {
         .each(function (d) {
             d.angle = (d.startAngle + d.endAngle) / 2;
         })
-        .attr("dy", ".35em")
         .attr("class", "titles")
+        .attr("dy", function(d) {
+            return d.angle > Math.PI ? "0em" : "0.5em";
+        })
         .attr("text-anchor", function (d) {
             return d.angle > Math.PI ? "end" : null;
         })
@@ -135,7 +137,7 @@ function generate_chord_chart(svg, connections, group_names) {
         })
         .attr("transform", function (d) {
             return "rotate(" + (d.angle * 180 / Math.PI - 90) + ")"
-                + "translate(" + (400 + 25) + ")";
+                + "translate(" + (400 + 35) + ")";
         })
         .attr("cx", 5)
         .attr("cy", 5)
@@ -495,7 +497,7 @@ function selectLink(svg) {
             let top_cuisines = limit(_cuisines, 10, (f, s) => s[1] - f[1]);
 
             let _mealtimes = get_mealtimes_relative(pick, [], [], []);
-            let top_mealtimes = limit(_mealtimes, 10, (f, s) => s[1] - f[1]);
+            let top_mealtimes = limit(_mealtimes, 10, (f, s) => mealtime_to_number(f[0]) - mealtime_to_number(s[0]));
 
             let _cooktimes = get_time_to_cook_relative(pick, [], [], []);
             let top_cooktimes = limit(_cooktimes, 10, (f, s) => s[0].localeCompare(f[0]));
@@ -540,7 +542,7 @@ function update_charts(pick) {
             selected_cooktime ? [selected_cooktime] : [],
             selected_mealtime ? [selected_mealtime] : [],
             selected_cuisine ? [selected_cuisine] : []);
-        let top_mealtimes = limit(_mealtimes, 10, (f, s) => s[1] - f[1]);
+        let top_mealtimes = limit(_mealtimes, 10, (f, s) => mealtime_to_number(f[0]) - mealtime_to_number(s[0]));
         show_bar_chart(d3.select('#mealtimeschart'), top_mealtimes.map(x => x[1]), top_mealtimes.map(x => x[0]), mealtime_callback(pick))
     }
     if (selected_cooktime === undefined) {
@@ -630,4 +632,14 @@ function highlightLink(svg, opacityOther) {
             .style("stroke-opacity", opacityOther)
             .style("fill-opacity", opacityOther);
     };
-};
+}
+
+function mealtime_to_number(_mealtime){
+    switch (_mealtime) {
+        case "breakfast": return 1;
+        case "brunch": return 2;
+        case "lunch": return 3;
+        case "dinner-party": return 4;
+        default: return -1;
+    }
+}
