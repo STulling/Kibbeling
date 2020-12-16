@@ -116,7 +116,7 @@ function generate_chord_chart(svg, connections, group_names) {
         })
         .attr("class", "titles")
         .attr("dy", function (d) {
-            return d.angle > Math.PI ? "0em" : "0.5em";
+            return d.angle > Math.PI ? "0em" : "0.6em";
         })
         .attr("text-anchor", function (d) {
             return d.angle > Math.PI ? "end" : null;
@@ -144,6 +144,7 @@ function generate_chord_chart(svg, connections, group_names) {
         .attr("cy", 5)
         .attr("r", 5)
         .attr("fill", "red")
+        .style("cursor", "pointer");
 
 }
 
@@ -270,7 +271,8 @@ function get_mealtimes_relative(_ingredients, _cooktimes = [], _mealtimes = [], 
 
 
 function get_time_to_cook(_ingredients, _cooktimes, _mealtimes, _cuisines) {
-    return get_count(cooktimes, _ingredients, _cooktimes, _mealtimes, _cuisines);
+    let res = get_count(cooktimes, _ingredients, _cooktimes, _mealtimes, _cuisines);
+    return res;
 }
 
 function get_time_to_cook_relative(_ingredients, _cooktimes = [], _mealtimes = [], _cuisines = []) {
@@ -287,13 +289,14 @@ function get_time_to_cook_relative(_ingredients, _cooktimes = [], _mealtimes = [
 }
 
 function get_random_from_array(arr, n) {
-    let result = new Array(n),
-        len = arr.length,
+
+    let len = arr.length,
         taken = new Array(len);
     if (len === 0)
         throw new RangeError("getRandom: more elements taken than available");
     if (n > len)
         n = len
+    let result = new Array(n);
     while (n--) {
         let x = Math.floor(Math.random() * len);
         result[n] = arr[x in taken ? taken[x] : x];
@@ -360,8 +363,15 @@ function add_links(valid_recipes) {
         links.push("https://www.food.com/recipe/" + recipe)
     }
     for (let i = 0; i < links.length; i++) {
-        d3.select('#randomrecipes').append('a').attr('href', links[i]).html(valid_recipes[i]);
-        d3.select('#randomrecipes').append('br');
+        let comps = valid_recipes[i].split('-');
+        let res = comps.slice(0, comps.length - 1);
+        d3.select('#randomrecipes')
+            .append('div')
+            .attr('class', 'recommendationbox')
+            .append('a')
+            .attr('class', 'recommendation')
+            .attr('href', links[i])
+            .html(res.join(" "));
     }
 }
 
@@ -530,6 +540,7 @@ function update_links(pick) {
     try {
         add_links(get_random_recipes(valid_recipes, 3));
     } catch (e) {
+        console.log(e);
         no_links_found();
     }
 }
