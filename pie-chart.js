@@ -21,7 +21,7 @@ function show_pie_chart(svg, values, labels, onClick) {
 
     var g = svg.append("g").attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
 
-    var color = d3.scaleOrdinal(['#4daf4a', '#377eb8', '#ff7f00', '#984ea3', '#e41a1c']);
+    var color = d3.scaleOrdinal(colors);
 
     // Generate the pie
     var pie = d3.pie()
@@ -95,7 +95,7 @@ function show_pie_chart(svg, values, labels, onClick) {
     //Draw arc paths
     arcs.append("path")
         .attr("fill", function (d, i) {
-            return color(i);
+            return color(labels.indexOf(d.data.label));
         })
         .attr("d", arc)
         .attr("value", function (d) {

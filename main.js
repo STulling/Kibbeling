@@ -7,12 +7,58 @@ let names = [];
 let selected_cuisine = undefined;
 let selected_mealtime = undefined;
 let selected_cooktime = undefined;
+let colors = ["#00c0c7", "#5144d3", "#e8871a", "#da3490", "#9089fa", "#47e26f", "#2780eb", "#6f38b1", "#dfbf03", "#cb6f10", "#268d6c", "#9bec54"]
 
 function generate_chord_chart(svg, connections, group_names) {
+    function getGradID(d) {
+        return "linkGrad-" + d.source.index + "-" + d.target.index;
+    }
+
+    var width = 550, height = 550;
+
     var res = d3.chord()
         .padAngle(0.05)     // padding between entities (black arc)
         .sortSubgroups(d3.descending)
         (connections)
+
+    var outerRadius = Math.min(width, height) * 0.5 - 55
+    var innerRadius = outerRadius - 30
+
+    var grads = svg.append("defs")
+        .selectAll("linearGradient")
+        .data(res)
+        .enter()
+        .append("linearGradient")
+        .attr("id", getGradID)
+        .attr("gradientUnits", "userSpaceOnUse")
+        .attr("x1", function (d) {
+            return innerRadius * Math.cos((d.source.endAngle - d.source.startAngle) / 2 + d.source.startAngle - Math.PI / 2);
+        })
+        .attr("y1", function (d) {
+            return innerRadius * Math.sin((d.source.endAngle - d.source.startAngle) / 2 + d.source.startAngle - Math.PI / 2);
+        })
+        .attr("x2", function (d) {
+            return innerRadius * Math.cos((d.target.endAngle - d.target.startAngle) / 2 + d.target.startAngle - Math.PI / 2);
+        })
+        .attr("y2", function (d) {
+            return innerRadius * Math.sin((d.target.endAngle - d.target.startAngle) / 2 + d.target.startAngle - Math.PI / 2);
+        })
+
+    // set the starting color (at 0%)
+
+    grads.append("stop")
+        .attr("offset", "0%")
+        .attr("stop-color", function (d) {
+            return colors[d.source.index]
+        })
+
+    //set the ending color (at 100%)
+    grads.append("stop")
+        .attr("offset", "100%")
+        .attr("stop-color", function (d) {
+            return colors[d.target.index]
+        })
+
 
     // add the groups on the inner part of the circle
     svg
@@ -26,8 +72,10 @@ function generate_chord_chart(svg, connections, group_names) {
         .enter()
         .append("g")
         .append("path")
-        .style("fill", "grey")
-        .style("stroke", "black")
+        .style("fill", function (d, i) {
+            return colors[i]
+        })
+        .style("stroke", "none")
         .attr("d", d3.arc()
             .innerRadius(400)
             .outerRadius(420)
@@ -47,8 +95,11 @@ function generate_chord_chart(svg, connections, group_names) {
         .attr("d", d3.ribbon()
             .radius(400)
         )
-        .style("fill", "#69b3a2")
-        .style("stroke", "black");
+        .style("fill", function (d) {
+            return "url(#" + getGradID(d) + ")";
+        })
+        .style("stroke", "none")
+        .style("opacity", 0.7);
 
 
     var g = svg.selectAll("g.group")
@@ -120,9 +171,14 @@ function ingr_count_map(ingredients_lists) {
 }
 
 function limit(items, top, comparator) {
-    return Object
+    let keys = Object
         .keys(items)
         .map(key => [key, items[key]])
+
+    if (comparator === undefined)
+        return keys;
+
+    return keys
         .sort(comparator)
         .slice(0, top);
 }
@@ -328,17 +384,25 @@ function add_ingredient_from_form() {
 }
 
 function removeIngredient(ingredient) {
-    top_items = top_items.filter((x) => x[0] != ingredient);
-    top_ids = get_ids(top_items);
-    connections = generate_connection_matrix(top_ids, ingredients);
-    refreshGraph()
+    if (top_items.length < 6) {
+        alert("A minimum of 5 ingredients must be selected")
+    } else {
+        top_items = top_items.filter((x) => x[0] != ingredient);
+        top_ids = get_ids(top_items);
+        connections = generate_connection_matrix(top_ids, ingredients);
+        refreshGraph()
+    }
 }
 
 function addIngredient(ingredient) {
-    top_items.push([ingredient, 0]);
-    top_ids = get_ids(top_items);
-    connections = generate_connection_matrix(top_ids, ingredients);
-    refreshGraph()
+    if (top_items.length > 9) {
+        alert("No more than 10 ingredients may be selected")
+    } else {
+        top_items.push([ingredient, 0]);
+        top_ids = get_ids(top_items);
+        connections = generate_connection_matrix(top_ids, ingredients);
+        refreshGraph()
+    }
 }
 
 function show_link(link) {
@@ -386,15 +450,15 @@ function refreshGraph() {
 function createGraph(svg) {
     generate_chord_chart(svg, connections, top_ids)
     d3.select(".link").selectAll("path")
-        .on("mouseover", highlightLink(svg, 0))
+        .on("mouseover", highlightLink(svg, 0.05))
         .on("mouseout", highlightLink(svg, 1));
 
     d3.select(".ingredient").selectAll("path")
-        .on("mouseover", highlightIngredient(svg, 0))
+        .on("mouseover", highlightIngredient(svg, 0.05))
         .on("mouseout", highlightIngredient(svg, 1));
 
     d3.selectAll(".titles")
-        .on("mouseover", highlightIngredient(svg, 0))
+        .on("mouseover", highlightIngredient(svg, 0.05))
         .on("mouseout", highlightIngredient(svg, 1));
 
     d3.select(".link").selectAll("path")
@@ -434,7 +498,7 @@ function selectLink(svg) {
             let top_mealtimes = limit(_mealtimes, 10, (f, s) => s[1] - f[1]);
 
             let _cooktimes = get_time_to_cook_relative(pick, [], [], []);
-            let top_cooktimes = limit(_cooktimes, 10, (f, s) => s[1] - f[1]);
+            let top_cooktimes = limit(_cooktimes, 10, (f, s) => s[0].localeCompare(f[0]));
 
             show_bar_chart(d3.select('#cuisinechart'), top_cuisines.map(x => x[1]), top_cuisines.map(x => x[0]), cuisine_callback(pick));
             show_bar_chart(d3.select('#mealtimeschart'), top_mealtimes.map(x => x[1]), top_mealtimes.map(x => x[0]), mealtime_callback(pick))
@@ -449,7 +513,7 @@ function selectLink(svg) {
     }
 }
 
-function update_links(pick){
+function update_links(pick) {
     let valid_recipes = get_valid_recipes(pick);
     valid_recipes = filter_recipes_on_cuisine(selected_cuisine ? [selected_cuisine] : [], valid_recipes)
     valid_recipes = filter_recipes_on_cooktime(selected_cooktime ? [selected_cooktime] : [], valid_recipes)
@@ -462,72 +526,52 @@ function update_links(pick){
     }
 }
 
+function update_charts(pick) {
+    if (selected_cuisine === undefined) {
+        let _cuisines = get_cuisines_relative(pick,
+            selected_cooktime ? [selected_cooktime] : [],
+            selected_mealtime ? [selected_mealtime] : [],
+            selected_cuisine ? [selected_cuisine] : []);
+        let top_cuisines = limit(_cuisines, 10, (f, s) => s[1] - f[1]);
+        show_bar_chart(d3.select('#cuisinechart'), top_cuisines.map(x => x[1]), top_cuisines.map(x => x[0]), cuisine_callback(pick));
+    }
+    if (selected_mealtime === undefined) {
+        let _mealtimes = get_mealtimes_relative(pick,
+            selected_cooktime ? [selected_cooktime] : [],
+            selected_mealtime ? [selected_mealtime] : [],
+            selected_cuisine ? [selected_cuisine] : []);
+        let top_mealtimes = limit(_mealtimes, 10, (f, s) => s[1] - f[1]);
+        show_bar_chart(d3.select('#mealtimeschart'), top_mealtimes.map(x => x[1]), top_mealtimes.map(x => x[0]), mealtime_callback(pick))
+    }
+    if (selected_cooktime === undefined) {
+        let _cooktimes = get_time_to_cook_relative(pick,
+            selected_cooktime ? [selected_cooktime] : [],
+            selected_mealtime ? [selected_mealtime] : [],
+            selected_cuisine ? [selected_cuisine] : []);
+        let top_cooktimes = limit(_cooktimes, 10, (f, s) => s[0].localeCompare(f[0]));
+        show_pie_chart(d3.select('#cooktimeschart'), top_cooktimes.map(x => x[1]), top_cooktimes.map(x => x[0]), cooktime_callback(pick))
+    }
+    update_links(pick);
+}
+
 function cuisine_callback(pick) {
-    return function (value) {
+    return function(value){
         selected_cuisine = value;
-        if (selected_mealtime === undefined) {
-            let _mealtimes = get_mealtimes_relative(pick,
-                selected_cooktime ? [selected_cooktime] : [],
-                [],
-                selected_cuisine ? [selected_cuisine] : []);
-            let top_mealtimes = limit(_mealtimes, 10, (f, s) => s[1] - f[1]);
-            show_bar_chart(d3.select('#mealtimeschart'), top_mealtimes.map(x => x[1]), top_mealtimes.map(x => x[0]), mealtime_callback(pick))
-        }
-        if (selected_cooktime === undefined) {
-            let _cooktimes = get_time_to_cook_relative(pick,
-                [],
-                selected_mealtime ? [selected_mealtime] : [],
-                selected_cuisine ? [selected_cuisine] : []);
-            let top_cooktimes = limit(_cooktimes, 10, (f, s) => s[1] - f[1]);
-            show_pie_chart(d3.select('#cooktimeschart'), top_cooktimes.map(x => x[1]), top_cooktimes.map(x => x[0]), cooktime_callback(pick))
-        }
-        update_links(pick);
+        update_charts(pick);
     }
 }
 
 function mealtime_callback(pick) {
     return function (value) {
         selected_mealtime = value;
-        if (selected_cuisine === undefined) {
-            let _cuisines = get_cuisines_relative(pick,
-                selected_cooktime ? [selected_cooktime] : [],
-                selected_mealtime ? [selected_mealtime] : [],
-                []);
-            let top_cuisines = limit(_cuisines, 10, (f, s) => s[1] - f[1]);
-            show_bar_chart(d3.select('#cuisinechart'), top_cuisines.map(x => x[1]), top_cuisines.map(x => x[0]), cuisine_callback(pick));
-        }
-        if (selected_cooktime === undefined) {
-            let _cooktimes = get_time_to_cook_relative(pick,
-                [],
-                selected_mealtime ? [selected_mealtime] : [],
-                selected_cuisine ? [selected_cuisine] : []);
-            let top_cooktimes = limit(_cooktimes, 10, (f, s) => s[1] - f[1]);
-            show_pie_chart(d3.select('#cooktimeschart'), top_cooktimes.map(x => x[1]), top_cooktimes.map(x => x[0]), cooktime_callback(pick))
-        }
-        update_links(pick);
+        update_charts(pick);
     }
 }
 
 function cooktime_callback(pick) {
     return function (value) {
         selected_cooktime = value;
-        if (selected_mealtime === undefined) {
-            let _mealtimes = get_mealtimes_relative(pick,
-                selected_cooktime ? [selected_cooktime] : [],
-                [],
-                selected_cuisine ? [selected_cuisine] : []);
-            let top_mealtimes = limit(_mealtimes, 10, (f, s) => s[1] - f[1]);
-            show_bar_chart(d3.select('#mealtimeschart'), top_mealtimes.map(x => x[1]), top_mealtimes.map(x => x[0]), mealtime_callback(pick))
-        }
-        if (selected_cuisine === undefined) {
-            let _cuisines = get_cuisines_relative(pick,
-                selected_cooktime ? [selected_cooktime] : [],
-                selected_mealtime ? [selected_mealtime] : [],
-                []);
-            let top_cuisines = limit(_cuisines, 10, (f, s) => s[1] - f[1]);
-            show_bar_chart(d3.select('#cuisinechart'), top_cuisines.map(x => x[1]), top_cuisines.map(x => x[0]), cuisine_callback(pick));
-        }
-        update_links(pick);
+        update_charts(pick);
     }
 }
 

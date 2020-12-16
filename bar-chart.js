@@ -44,7 +44,7 @@ function show_bar_chart(svg, values, labels, onClick) {
         .attr("y", function(d) { return y(d.Value); })
         .attr("width", x.bandwidth())
         .attr("height", function(d) { return height - y(d.Value) - bottomMargin; })
-        .attr("fill", "#69b3a2")
+        .attr("fill", "#268d6c")
         .attr("value", function (d) {
             return d.Key
         })
