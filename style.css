@@ -1,5 +1,6 @@
 body {
     display: flex;
+    font-family: Arial;
 }
 #info {
     background-color: #EEE;
