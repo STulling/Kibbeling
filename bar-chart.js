@@ -1,5 +1,6 @@
 function show_bar_chart(svg, values, labels, onClick) {
     svg.selectAll("*").remove();
+
     height = svg.attr("height")
     width = svg.attr("width")
 

@@ -3,17 +3,27 @@ body {
     font-family: Arial;
 }
 
-#info {
+#info, #description {
     background-color: #EEE;
     border-radius: 9px;
     padding: 7px;
     margin: 10px;
-    width: 880px;
-    height: 1130px;
+    width: 25%;
+    height: 95%;
 }
+
+#main {
+    width: 80%;
+    height: 100%;
+}
+
+#main #visualization {
+    width: 100%;
+    height: 100%;
+}
+
 .container-40{
     background-color: #d6d6d6;
-    width: 800px;
     height: 40px;
     border-radius: 9px;
     margin: 10px;
@@ -22,7 +32,6 @@ body {
 
 .container-200{
     background-color: #d6d6d6;
-    width: 800px;
     height: 200px;
     border-radius: 9px;
     margin: 10px;
@@ -31,11 +40,14 @@ body {
 
 .container-400 {
     background-color: #d6d6d6;
-    width: 800px;
     height: 400px;
     border-radius: 9px;
     margin: 10px;
     padding: 30px;
+}
+
+#cuisinechart, #mealtimeschart, #cooktimeschart {
+    height: 100%;
 }
 
 text.titles {

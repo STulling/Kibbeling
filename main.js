@@ -14,7 +14,8 @@ function generate_chord_chart(svg, connections, group_names) {
         return "linkGrad-" + d.source.index + "-" + d.target.index;
     }
 
-    var width = 550, height = 550;
+    var width = svg.select(function() { return this.parentNode; }).attr("width");
+    var height = svg.select(function() { return this.parentNode; }).attr("height");
 
     var res = d3.chord()
         .padAngle(0.05)     // padding between entities (black arc)
@@ -22,7 +23,7 @@ function generate_chord_chart(svg, connections, group_names) {
         (connections)
 
     var outerRadius = Math.min(width, height) * 0.5 - 55
-    var innerRadius = outerRadius - 30
+    var innerRadius = outerRadius * 0.95
 
     var grads = svg.append("defs")
         .selectAll("linearGradient")
@@ -77,8 +78,8 @@ function generate_chord_chart(svg, connections, group_names) {
         })
         .style("stroke", "none")
         .attr("d", d3.arc()
-            .innerRadius(400)
-            .outerRadius(420)
+            .innerRadius(innerRadius)
+            .outerRadius(outerRadius)
         )
 
     // Add the links between groups
@@ -93,7 +94,7 @@ function generate_chord_chart(svg, connections, group_names) {
         .enter()
         .append("path")
         .attr("d", d3.ribbon()
-            .radius(400)
+            .radius(innerRadius)
         )
         .style("fill", function (d) {
             return "url(#" + getGradID(d) + ")";
@@ -123,7 +124,7 @@ function generate_chord_chart(svg, connections, group_names) {
         })
         .attr("transform", function (d) {
             return "rotate(" + (d.angle * 180 / Math.PI - 90) + ")"
-                + "translate(" + (400 + 55) + ")"
+                + "translate(" + (innerRadius + 55) + ")"
                 + (d.angle > Math.PI ? "rotate(180)" : "");
         })
         .attr('opacity', 1)
@@ -138,7 +139,7 @@ function generate_chord_chart(svg, connections, group_names) {
         })
         .attr("transform", function (d) {
             return "rotate(" + (d.angle * 180 / Math.PI - 90) + ")"
-                + "translate(" + (400 + 35) + ")";
+                + "translate(" + (innerRadius + 35) + ")";
         })
         .attr("cx", 5)
         .attr("cy", 5)
@@ -383,6 +384,10 @@ function no_links_found() {
 var top_items;
 var top_ids;
 var unique_ingredients;
+var top_cooktimes;
+var top_mealtimes;
+var top_cuisines;
+var pick;
 
 function add_ingredient_from_form() {
     let text = document.getElementById("ingredientinput").value.toLowerCase();
@@ -444,21 +449,56 @@ function main() {
         connections = generate_connection_matrix(top_ids, ingredients);
 
 
-        createGraph(svg)
+        createGraph(svg);
     });
+
+    let width = document.getElementById('visualization').offsetWidth;
+    let height = document.getElementById('visualization').offsetHeight;
 
     var svg = d3.select("#visualization")
         .append("svg")
-        .attr("width", 1000)
-        .attr("height", 1000)
+        .attr("width", width)
+        .attr("height", height)
         .append("g")
-        .attr("transform", "translate(500,500)")
+        .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
 }
 
 function refreshGraph() {
     let graph = d3.select("#visualization").select("svg").select("g")
+    let width = document.getElementById('visualization').offsetWidth;
+    let height = document.getElementById('visualization').offsetHeight;
     graph.selectAll("*").remove();
+    d3.select("#visualization")
+        .select("svg")
+            .attr("width", width)
+            .attr("height", height)
+        .select("g")
+            .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
     createGraph(graph)
+}
+
+function refreshGraphs() {
+    refreshGraph();
+    let width = document.getElementById('cuisinechart').offsetWidth;
+    let height = document.getElementById('cuisinechart').offsetHeight;
+    d3.select("#cuisinechart")
+        .attr("width", width)
+        .attr("height", height)
+    show_bar_chart(d3.select('#cuisinechart'), top_cuisines.map(x => x[1]), top_cuisines.map(x => x[0]), cuisine_callback(pick));
+
+    width = document.getElementById('mealtimeschart').offsetWidth;
+    height = document.getElementById('mealtimeschart').offsetHeight;
+    d3.select("#mealtimeschart")
+        .attr("width", width)
+        .attr("height", height)
+    show_bar_chart(d3.select('#mealtimeschart'), top_mealtimes.map(x => x[1]), top_mealtimes.map(x => x[0]), mealtime_callback(pick));
+
+    width = document.getElementById('cooktimeschart').offsetWidth;
+    height = document.getElementById('cooktimeschart').offsetHeight;
+    d3.select("#cooktimeschart")
+        .attr("width", width)
+        .attr("height", height)
+    show_pie_chart(d3.select('#cooktimeschart'), top_cooktimes.map(x => x[1]), top_cooktimes.map(x => x[0]), cooktime_callback(pick));
 }
 
 function createGraph(svg) {
@@ -501,23 +541,24 @@ function selectLink(svg) {
             selected_cuisine = undefined;
 
             // Selected following ingredients:
-            let pick = [top_ids[obj.source.index], top_ids[obj.target.index]];
+            pick = [top_ids[obj.source.index], top_ids[obj.target.index]];
             show_link("SELECTED: " + pick[0] + " and " + pick[1]);
 
             update_links(pick);
 
             let _cuisines = get_cuisines_relative(pick, [], [], []);
-            let top_cuisines = limit(_cuisines, 10, (f, s) => s[1] - f[1]);
+            top_cuisines = limit(_cuisines, 10, (f, s) => s[1] - f[1]);
 
             let _mealtimes = get_mealtimes_relative(pick, [], [], []);
-            let top_mealtimes = limit(_mealtimes, 10, (f, s) => mealtime_to_number(f[0]) - mealtime_to_number(s[0]));
+            top_mealtimes = limit(_mealtimes, 10, (f, s) => mealtime_to_number(f[0]) - mealtime_to_number(s[0]));
 
             let _cooktimes = get_time_to_cook_relative(pick, [], [], []);
-            let top_cooktimes = limit(_cooktimes, 10, (f, s) => s[0].localeCompare(f[0]));
+            top_cooktimes = limit(_cooktimes, 10, (f, s) => s[0].localeCompare(f[0]));
 
             show_bar_chart(d3.select('#cuisinechart'), top_cuisines.map(x => x[1]), top_cuisines.map(x => x[0]), cuisine_callback(pick));
             show_bar_chart(d3.select('#mealtimeschart'), top_mealtimes.map(x => x[1]), top_mealtimes.map(x => x[0]), mealtime_callback(pick))
             show_pie_chart(d3.select('#cooktimeschart'), top_cooktimes.map(x => x[1]), top_cooktimes.map(x => x[0]), cooktime_callback(pick))
+            refreshGraphs()
 
             svg.select(".link").selectAll("path").style("cursor", "default");
             clickedPath.style("cursor", "pointer");
