@@ -1,33 +1,36 @@
 <head>
-	<script type="text/javascript" src="./d3/d3.js"></script>
-	<script type="text/javascript" src="autocomplete.js"></script>
-	<script type="text/javascript" src="main.js"></script>
-	<script type="text/javascript" src="bar-chart.js"></script>
-	<script type="text/javascript" src="pie-chart.js"></script>
-	<link rel="stylesheet" href="style.css">
+    <script type="text/javascript" src="./d3/d3.js"></script>
+    <script type="text/javascript" src="autocomplete.js"></script>
+    <script type="text/javascript" src="main.js"></script>
+    <script type="text/javascript" src="bar-chart.js"></script>
+    <script type="text/javascript" src="pie-chart.js"></script>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body onload="main();">
-	<div id="description">
-		<h1> Kibbeling </h1>
-		<br>
-		Welcome, this website is about seeing the different interactions between ingredients.
-		On the right you can see a bunch of popular ingredients and their interactions.
-		<br>
-		The size of the 
-
-		<form autocomplete="off" action="javascript:add_ingredient_from_form()">
-		  <div class="autocomplete" style="width:300px;">
-			<input id="ingredientinput" type="text" placeholder="Ingredient">
-		  </div>
-		  <input type="submit">
-		</form>
-	</div>
-	<div id="visualization"></div>
-	<div id="info">
-		<div id="selected"></div>
-		<div id="randomrecipes"></div>
-		<div id="cuisinechart" width="600" height="200"></div>
-		<div id="mealtimeschart" width="600" height="200"></div>
-		<div id="cooktimeschart" width="800" height="400"></div>
-	</div>
+<div id="main">
+    <form id="autocompletebox" autocomplete="off" action="javascript:add_ingredient_from_form()">
+        <div class="autocomplete" style="width:400px;">
+            <input id="ingredientinput" type="text" placeholder="Ingredient to add">
+        </div>
+        <input type="submit">
+    </form>
+    <div id="visualization"></div>
+</div>
+<div id="info">
+    <div class="container-40">
+        <div id="selected"></div>
+    </div>
+    <div class="container-200">
+        <div id="cuisinechart" width="800" height="200"></div>
+    </div>
+    <div class="container-200">
+        <div id="mealtimeschart" width="800" height="200"></div>
+    </div>
+    <div class="container-400">
+        <div id="cooktimeschart" width="800" height="400"></div>
+    </div>
+</div>
+<div id="recommendations">
+    <div id="randomrecipes"></div>
+</div>
 </body>

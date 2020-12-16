@@ -99,6 +99,7 @@ function generate_chord_chart(svg, connections, group_names) {
             return "url(#" + getGradID(d) + ")";
         })
         .style("stroke", "none")
+        .style("cursor", "pointer")
         .style("opacity", 0.7);
 
 
@@ -113,8 +114,10 @@ function generate_chord_chart(svg, connections, group_names) {
         .each(function (d) {
             d.angle = (d.startAngle + d.endAngle) / 2;
         })
-        .attr("dy", ".35em")
         .attr("class", "titles")
+        .attr("dy", function (d) {
+            return d.angle > Math.PI ? "0em" : "0.6em";
+        })
         .attr("text-anchor", function (d) {
             return d.angle > Math.PI ? "end" : null;
         })
@@ -135,12 +138,13 @@ function generate_chord_chart(svg, connections, group_names) {
         })
         .attr("transform", function (d) {
             return "rotate(" + (d.angle * 180 / Math.PI - 90) + ")"
-                + "translate(" + (400 + 25) + ")";
+                + "translate(" + (400 + 35) + ")";
         })
         .attr("cx", 5)
         .attr("cy", 5)
         .attr("r", 5)
         .attr("fill", "red")
+        .style("cursor", "pointer");
 
 }
 
@@ -267,7 +271,8 @@ function get_mealtimes_relative(_ingredients, _cooktimes = [], _mealtimes = [], 
 
 
 function get_time_to_cook(_ingredients, _cooktimes, _mealtimes, _cuisines) {
-    return get_count(cooktimes, _ingredients, _cooktimes, _mealtimes, _cuisines);
+    let res = get_count(cooktimes, _ingredients, _cooktimes, _mealtimes, _cuisines);
+    return res;
 }
 
 function get_time_to_cook_relative(_ingredients, _cooktimes = [], _mealtimes = [], _cuisines = []) {
@@ -284,13 +289,14 @@ function get_time_to_cook_relative(_ingredients, _cooktimes = [], _mealtimes = [
 }
 
 function get_random_from_array(arr, n) {
-    let result = new Array(n),
-        len = arr.length,
+
+    let len = arr.length,
         taken = new Array(len);
     if (len === 0)
         throw new RangeError("getRandom: more elements taken than available");
     if (n > len)
         n = len
+    let result = new Array(n);
     while (n--) {
         let x = Math.floor(Math.random() * len);
         result[n] = arr[x in taken ? taken[x] : x];
@@ -345,6 +351,7 @@ function string_to_array(string) {
     array = array.split(', ');
     for (let i = 0; i < array.length; i++) {
         array[i] = array[i].substring(1, array[i].length - 1)
+        array[i] = array[i] === "dinner-party" ? "dinner" : array[i];
     }
     return array
 }
@@ -356,8 +363,15 @@ function add_links(valid_recipes) {
         links.push("https://www.food.com/recipe/" + recipe)
     }
     for (let i = 0; i < links.length; i++) {
-        d3.select('#randomrecipes').append('a').attr('href', links[i]).html(valid_recipes[i]);
-        d3.select('#randomrecipes').append('br');
+        let comps = valid_recipes[i].split('-');
+        let res = comps.slice(0, comps.length - 1);
+        d3.select('#randomrecipes')
+            .append('div')
+            .attr('class', 'recommendationbox')
+            .append('a')
+            .attr('class', 'recommendation')
+            .attr('href', links[i])
+            .html(res.join(" "));
     }
 }
 
@@ -474,6 +488,7 @@ function selectLink(svg) {
         if (clickedPath.classed(boolClass)) {
             clickedPath.classed(boolClass, false)
             opacity = 1;
+            svg.select(".link").selectAll("path").style("cursor", "pointer");
         } else {
             // We already have something selected, thus return.
             if (svg.select(".link").selectAll(".clicked").size() > 0) {
@@ -495,7 +510,7 @@ function selectLink(svg) {
             let top_cuisines = limit(_cuisines, 10, (f, s) => s[1] - f[1]);
 
             let _mealtimes = get_mealtimes_relative(pick, [], [], []);
-            let top_mealtimes = limit(_mealtimes, 10, (f, s) => s[1] - f[1]);
+            let top_mealtimes = limit(_mealtimes, 10, (f, s) => mealtime_to_number(f[0]) - mealtime_to_number(s[0]));
 
             let _cooktimes = get_time_to_cook_relative(pick, [], [], []);
             let top_cooktimes = limit(_cooktimes, 10, (f, s) => s[0].localeCompare(f[0]));
@@ -503,6 +518,9 @@ function selectLink(svg) {
             show_bar_chart(d3.select('#cuisinechart'), top_cuisines.map(x => x[1]), top_cuisines.map(x => x[0]), cuisine_callback(pick));
             show_bar_chart(d3.select('#mealtimeschart'), top_mealtimes.map(x => x[1]), top_mealtimes.map(x => x[0]), mealtime_callback(pick))
             show_pie_chart(d3.select('#cooktimeschart'), top_cooktimes.map(x => x[1]), top_cooktimes.map(x => x[0]), cooktime_callback(pick))
+
+            svg.select(".link").selectAll("path").style("cursor", "default");
+            clickedPath.style("cursor", "pointer");
         }
 
         var other = svg.select(".link").selectAll("path")
@@ -522,6 +540,7 @@ function update_links(pick) {
     try {
         add_links(get_random_recipes(valid_recipes, 3));
     } catch (e) {
+        console.log(e);
         no_links_found();
     }
 }
@@ -540,7 +559,7 @@ function update_charts(pick) {
             selected_cooktime ? [selected_cooktime] : [],
             selected_mealtime ? [selected_mealtime] : [],
             selected_cuisine ? [selected_cuisine] : []);
-        let top_mealtimes = limit(_mealtimes, 10, (f, s) => s[1] - f[1]);
+        let top_mealtimes = limit(_mealtimes, 10, (f, s) => mealtime_to_number(f[0]) - mealtime_to_number(s[0]));
         show_bar_chart(d3.select('#mealtimeschart'), top_mealtimes.map(x => x[1]), top_mealtimes.map(x => x[0]), mealtime_callback(pick))
     }
     if (selected_cooktime === undefined) {
@@ -555,7 +574,7 @@ function update_charts(pick) {
 }
 
 function cuisine_callback(pick) {
-    return function(value){
+    return function (value) {
         selected_cuisine = value;
         update_charts(pick);
     }
@@ -578,7 +597,7 @@ function cooktime_callback(pick) {
 function selectChart(chart, onClick) {
     return function (mouseEvent, obj) {
         var charElements = chart.selectAll("rect");
-        if (charElements.size() == 0) {
+        if (charElements.size() === 0) {
             charElements = chart.selectAll("g.arc path")
         }
         const clickedElement = charElements.filter(elem => elem == obj)
@@ -588,12 +607,15 @@ function selectChart(chart, onClick) {
             clickedElement.classed(boolClass, false)
             opacity = 1;
             onClick(undefined);
+            charElements.style("cursor", "pointer");
         } else {
             if (chart.selectAll(".clicked").size() > 0) {
                 return
             }
             clickedElement.classed(boolClass, true)
             onClick(clickedElement.attr("value"))
+            charElements.style("cursor", "default");
+            clickedElement.style("cursor", "pointer");
         }
         const other = charElements.filter(elem => elem != obj);
 
@@ -630,4 +652,19 @@ function highlightLink(svg, opacityOther) {
             .style("stroke-opacity", opacityOther)
             .style("fill-opacity", opacityOther);
     };
-};
+}
+
+function mealtime_to_number(_mealtime) {
+    switch (_mealtime) {
+        case "breakfast":
+            return 1;
+        case "brunch":
+            return 2;
+        case "lunch":
+            return 3;
+        case "dinner":
+            return 4;
+        default:
+            return -1;
+    }
+}
