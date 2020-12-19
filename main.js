@@ -477,8 +477,7 @@ function refreshGraph() {
     createGraph(graph)
 }
 
-function refreshGraphs() {
-    refreshGraph();
+function showGraphs() {
     let width = document.getElementById('cuisinechart').offsetWidth;
     let height = document.getElementById('cuisinechart').offsetHeight;
     d3.select("#cuisinechart")
@@ -499,6 +498,11 @@ function refreshGraphs() {
         .attr("width", width)
         .attr("height", height)
     show_pie_chart(d3.select('#cooktimeschart'), top_cooktimes.map(x => x[1]), top_cooktimes.map(x => x[0]), cooktime_callback(pick));
+}
+
+function refreshGraphs() {
+    refreshGraph();
+    showGraphs();
 }
 
 function createGraph(svg) {
@@ -555,10 +559,7 @@ function selectLink(svg) {
             let _cooktimes = get_time_to_cook_relative(pick, [], [], []);
             top_cooktimes = limit(_cooktimes, 10, (f, s) => s[0].localeCompare(f[0]));
 
-            show_bar_chart(d3.select('#cuisinechart'), top_cuisines.map(x => x[1]), top_cuisines.map(x => x[0]), cuisine_callback(pick));
-            show_bar_chart(d3.select('#mealtimeschart'), top_mealtimes.map(x => x[1]), top_mealtimes.map(x => x[0]), mealtime_callback(pick))
-            show_pie_chart(d3.select('#cooktimeschart'), top_cooktimes.map(x => x[1]), top_cooktimes.map(x => x[0]), cooktime_callback(pick))
-            refreshGraphs()
+            showGraphs()
 
             svg.select(".link").selectAll("path").style("cursor", "default");
             clickedPath.style("cursor", "pointer");
