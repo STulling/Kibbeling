@@ -8,6 +8,7 @@ let selected_cuisine = undefined;
 let selected_mealtime = undefined;
 let selected_cooktime = undefined;
 let colors = ["#00c0c7", "#5144d3", "#e8871a", "#da3490", "#9089fa", "#47e26f", "#2780eb", "#6f38b1", "#dfbf03", "#cb6f10", "#268d6c", "#9bec54"]
+let originalSize = {};
 
 function generate_chord_chart(svg, connections, group_names) {
     function getGradID(d) {
@@ -455,6 +456,8 @@ function main() {
     let width = document.getElementById('visualization').offsetWidth;
     let height = document.getElementById('visualization').offsetHeight;
 
+    originalSize.width = width;
+    originalSize.height = height;
     var svg = d3.select("#visualization")
         .append("svg")
         .attr("width", width)
@@ -465,16 +468,21 @@ function main() {
 
 function refreshGraph() {
     let graph = d3.select("#visualization").select("svg").select("g")
+
+    graph.selectAll("*").remove();
+    createGraph(graph)
+}
+
+function scaleGraph() {
     let width = document.getElementById('visualization').offsetWidth;
     let height = document.getElementById('visualization').offsetHeight;
-    graph.selectAll("*").remove();
+
     d3.select("#visualization")
         .select("svg")
-            .attr("width", width)
-            .attr("height", height)
+        .attr("width", width)
+        .attr("height", height)
         .select("g")
-            .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
-    createGraph(graph)
+        .attr("transform", "translate(" +  width / 2 + "," + height / 2 + ") scale(" + Math.min(width / originalSize.width, height / originalSize.height) +")")
 }
 
 function showGraphs() {
@@ -501,7 +509,7 @@ function showGraphs() {
 }
 
 function refreshGraphs() {
-    refreshGraph();
+    scaleGraph()
     showGraphs();
 }
 
