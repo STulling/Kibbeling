@@ -23,8 +23,11 @@
         <input type="submit">
     </form>
     <div id="visualization"></div>
-    <div id="table">
-        <table id="recipeTable" class="display" width="100%"></table>
+    <div>
+        <button id="loadTable" class="hidden" onclick="toggle_table()">Load all recipes (might increase loading times)</button>
+        <div id="table">
+            <table id="recipeTable" class="display" width="100%"></table>
+        </div>
     </div>
 
 </div>

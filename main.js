@@ -9,7 +9,10 @@ let selected_mealtime = undefined;
 let selected_cooktime = undefined;
 let colors = ["#00c0c7", "#5144d3", "#e8871a", "#da3490", "#9089fa", "#47e26f", "#2780eb", "#6f38b1", "#dfbf03", "#cb6f10", "#268d6c", "#9bec54"]
 let originalSize = {};
+
+// Stuff for table.
 let table = undefined;
+let last_valid_recipes = undefined;
 
 function generate_chord_chart(svg, connections, group_names) {
     function getGradID(d) {
@@ -587,18 +590,16 @@ function update_links(pick) {
     valid_recipes = filter_recipes_on_cuisine(selected_cuisine ? [selected_cuisine] : [], valid_recipes)
     valid_recipes = filter_recipes_on_cooktime(selected_cooktime ? [selected_cooktime] : [], valid_recipes)
     valid_recipes = filter_recipes_on_mealtime(selected_mealtime ? [selected_mealtime] : [], valid_recipes)
-    if (table !== undefined) table.destroy()
-    table = $('#recipeTable').DataTable( {
-        data: getTableData(valid_recipes),
-        columns: [
-            { title: "Name" },
-            { title: "Cuisine" },
-            { title: "Type" },
-            { title: "Time" },
-            { title: "Link" }
-        ]
-    });
 
+    if ($("#loadTable").hasClass("hidden")) {
+        $("#loadTable").removeClass();
+    }
+    last_valid_recipes = valid_recipes
+
+    // We are already showing a table, update it.
+    if (table !== undefined) {
+        show_table()
+    }
     try {
         add_links(get_random_recipes(valid_recipes, 3));
     } catch (e) {
@@ -607,18 +608,42 @@ function update_links(pick) {
     }
 }
 
-function* getTableData(valid_recipes) {
-    for (var recipe of Object.values(valid_recipes)) {
-        yield [
-            extractName(names[i]),
+function toggle_table() {
+    if (table !== undefined) {
+        console.log("yeet");
+        $("#table").addClass("hidden");
+        table.destroy()
+        table = undefined;
+    } else {
+        $("#table").removeClass("hidden");
+        show_table();
+    }
+}
+function show_table() {
+    if (last_valid_recipes === undefined) return;
+
+    if (table !== undefined) table.destroy()
+    table = $('#recipeTable').DataTable( {
+        data: Object.values(last_valid_recipes).map(i => [
+            (2 / ingredients[i].length * 100).toFixed(2) + "%" ,
+            extract_name(names[i]),
             cuisines[i],
             mealtimes[i],
             cooktimes[i],
-            "https://www.food.com/recipe/"+names[i]
-        ]
-    }
+            "<a href=\"https://www.food.com/recipe/"+names[i] + "\">Link</a>"
+        ]),
+        columns: [
+            { title: "Ingredient Relevance", type: "num-fmt"},
+            { title: "Name" },
+            { title: "Cuisine" },
+            { title: "Type" },
+            { title: "Time" },
+            { title: "Link", type: "html" }
+        ],
+        order: [[0, "desc"]]
+    });
 }
-function extractName(name) {
+function extract_name(name) {
     const split = name.split('-');
     return split.slice(0, split.length - 1).join(" ")
 }
