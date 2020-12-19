@@ -13,7 +13,27 @@
 <body onload="main();" onresize="refreshGraphs()">
 <div id="description">
     <h1>Kibbeling</h1>
-	This is a
+	This is an interactive visualization of the <a href="https://www.kaggle.com/shuyangli94/food-com-recipes-and-user-interactions">Food.com dataset</a>.
+	<p>
+	In the center of the page you can see a chord diagram of a couple of popular ingredients.
+	This chord diagram shows the co-occurence of ingredients in all the recipes.
+	If we, for instance, look at the chord between flour and salt, we can see that around 30% of the flour recipes in this graph also use salt.
+	The other way around we can see that with these ingredients only around 10% of the salt recipes use flour.
+	<p>
+	Now try selecting one of the chords.
+	<p>
+	If you've selected a chord some new diagrams on the right should appear.
+	These diagrams show the different cuisines, meal times and cooking times.
+	Try clicking on some of the diagrams and see what changes.
+	<p>
+	Clicking on the diagrams applies a filter, for instance selecting a specific cuisine makes the other
+	diagrams only look at the recipes from that cuisine.
+	<p>
+	Finally press the button near the bottom. 
+	This button gives you a list of recipes decided by the filters you applied.
+	<p>
+	Have fun using this interactive recipe finder.
+	
 </div>
 <div id="main">
     <form id="autocompletebox" autocomplete="off" action="javascript:add_ingredient_from_form()">
