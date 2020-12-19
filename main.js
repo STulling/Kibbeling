@@ -494,15 +494,8 @@ function scaleGraph() {
 }
 
 function showGraphs() {
-    let width = document.getElementById('cooktimeschart').offsetWidth;
-    let height = document.getElementById('cooktimeschart').offsetHeight;
-    d3.select("#cooktimeschart")
-        .attr("width", width)
-        .attr("height", height)
-    show_pie_chart(d3.select('#cooktimeschart'), top_cooktimes.map(x => x[1]), top_cooktimes.map(x => x[0]), cooktime_callback(pick));
-
-    width = document.getElementById('cuisinechart').offsetWidth;
-    height = document.getElementById('cuisinechart').offsetHeight;
+    let width = document.getElementById('cuisinechart').offsetWidth;
+    let height = document.getElementById('cuisinechart').offsetHeight;
     d3.select("#cuisinechart")
         .attr("width", width)
         .attr("height", height)
@@ -514,10 +507,18 @@ function showGraphs() {
         .attr("width", width)
         .attr("height", height)
     show_bar_chart(d3.select('#mealtimeschart'), top_mealtimes.map(x => x[1]), top_mealtimes.map(x => x[0]), mealtime_callback(pick));
+
+    width = document.getElementById('cooktimeschart').offsetWidth;
+    height = document.getElementById('cooktimeschart').offsetHeight;
+    d3.select("#cooktimeschart")
+        .attr("width", width)
+        .attr("height", height)
+    show_pie_chart(d3.select('#cooktimeschart'), top_cooktimes.map(x => x[1]), top_cooktimes.map(x => x[0]), cooktime_callback(pick));
 }
 
 function refreshGraphs() {
     scaleGraph()
+    showGraphs();
     showGraphs();
 }
 
@@ -564,7 +565,6 @@ function selectLink(svg) {
             pick = [top_ids[obj.source.index], top_ids[obj.target.index]];
             show_link("SELECTED: " + pick[0] + " and " + pick[1]);
 
-            update_links(pick);
 
             let _cuisines = get_cuisines_relative(pick, [], [], []);
             top_cuisines = limit(_cuisines, 10, (f, s) => s[1] - f[1]);
@@ -575,6 +575,7 @@ function selectLink(svg) {
             let _cooktimes = get_time_to_cook_relative(pick, [], [], []);
             top_cooktimes = limit(_cooktimes, 10, (f, s) => s[0].localeCompare(f[0]));
 
+            update_links(pick);
             showGraphs()
 
             svg.select(".link").selectAll("path").style("cursor", "default");
@@ -610,6 +611,7 @@ function update_links(pick) {
         console.log(e);
         no_links_found();
     }
+    refreshGraphs()
 }
 
 function toggle_table() {
