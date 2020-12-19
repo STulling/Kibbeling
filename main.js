@@ -358,6 +358,10 @@ function string_to_array(string) {
     for (let i = 0; i < array.length; i++) {
         array[i] = array[i].substring(1, array[i].length - 1)
         array[i] = array[i] === "dinner-party" ? "dinner" : array[i];
+        array[i] = array[i] === "15-minutes-or-less" ? "< 15min" : array[i];
+        array[i] = array[i] === "30-minutes-or-less" ? "< 30min" : array[i];
+        array[i] = array[i] === "60-minutes-or-less" ? "< 60min" : array[i];
+        array[i] = array[i] === "4-hours-or-less" ? "< 4h" : array[i];
     }
     return array
 }
@@ -490,8 +494,15 @@ function scaleGraph() {
 }
 
 function showGraphs() {
-    let width = document.getElementById('cuisinechart').offsetWidth;
-    let height = document.getElementById('cuisinechart').offsetHeight;
+    let width = document.getElementById('cooktimeschart').offsetWidth;
+    let height = document.getElementById('cooktimeschart').offsetHeight;
+    d3.select("#cooktimeschart")
+        .attr("width", width)
+        .attr("height", height)
+    show_pie_chart(d3.select('#cooktimeschart'), top_cooktimes.map(x => x[1]), top_cooktimes.map(x => x[0]), cooktime_callback(pick));
+
+    width = document.getElementById('cuisinechart').offsetWidth;
+    height = document.getElementById('cuisinechart').offsetHeight;
     d3.select("#cuisinechart")
         .attr("width", width)
         .attr("height", height)
@@ -503,13 +514,6 @@ function showGraphs() {
         .attr("width", width)
         .attr("height", height)
     show_bar_chart(d3.select('#mealtimeschart'), top_mealtimes.map(x => x[1]), top_mealtimes.map(x => x[0]), mealtime_callback(pick));
-
-    width = document.getElementById('cooktimeschart').offsetWidth;
-    height = document.getElementById('cooktimeschart').offsetHeight;
-    d3.select("#cooktimeschart")
-        .attr("width", width)
-        .attr("height", height)
-    show_pie_chart(d3.select('#cooktimeschart'), top_cooktimes.map(x => x[1]), top_cooktimes.map(x => x[0]), cooktime_callback(pick));
 }
 
 function refreshGraphs() {

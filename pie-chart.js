@@ -13,7 +13,9 @@ function show_pie_chart(svg, values, labels, onClick) {
 
     var width = svg.attr("width"),
         height = svg.attr("height"),
-        radius = Math.min(width, height) / 2
+        radius = Math.min(width, height) / 2 - 20;
+
+    console.log(radius);
 
     svg = svg.append("svg")
         .attr("height", height)
