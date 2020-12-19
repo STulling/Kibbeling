@@ -1,26 +1,24 @@
 function show_bar_chart(svg, values, labels, onClick) {
-    svg.selectAll("*").remove();
+    clear_element(svg);
 
-    height = svg.attr("height")
-    width = svg.attr("width")
-
-    var leftMargin = 30;
-    var bottomMargin = 30;
+    let height = parseInt(svg.attr("height"));
+    let width = parseInt(svg.attr("width"));
+    let padding = parseInt(svg.attr("padding"));
 
     svg = svg.append("svg")
-            .attr("height", parseInt(height) + 2 * bottomMargin)
-            .attr("width", parseInt(width) + 2 * leftMargin)
+            .attr("height", height + 2 * padding)
+            .attr("width", width)
         .append("g")
             .attr("transform",
-              "translate(" + leftMargin + "," + 0 + ")");
+              "translate(" + padding + "," + 0 + ")");
 
     var x = d3.scaleBand()
-      .range([ 0, width - leftMargin ])
+      .range([ 0, width - padding ])
       .domain(labels)
       .padding(0.2);
 
     svg.append("g")
-      .attr("transform", "translate(0," + (height - bottomMargin) + ")")
+      .attr("transform", translate(0, height-padding))
       .call(d3.axisBottom(x))
       .selectAll("text")
 		.attr("transform", "rotate(-45)")
@@ -29,7 +27,7 @@ function show_bar_chart(svg, values, labels, onClick) {
     // Add Y axis
     var y = d3.scaleLinear()
       .domain([0, Math.max(...values)])
-      .range([ height - bottomMargin, 0]);
+      .range([ height - padding, 0]);
     svg.append("g")
       .call(d3.axisLeft(y));
 
@@ -45,7 +43,7 @@ function show_bar_chart(svg, values, labels, onClick) {
         .attr("x", function(d) { return x(d.Key); })
         .attr("y", function(d) { return y(d.Value); })
         .attr("width", x.bandwidth())
-        .attr("height", function(d) { return height - y(d.Value) - bottomMargin; })
+        .attr("height", function(d) { return height - y(d.Value) - padding; })
         .attr("fill", "#268d6c")
         .attr("value", function (d) {
             return d.Key

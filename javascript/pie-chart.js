@@ -1,49 +1,68 @@
 function combine_values_and_labels(values, labels) {
     let map = [];
     for (let i = 0; i < values.length; i++) {
-        map.push({"label": labels[i], "value": values[i]})
+        map.push({"label": labels[i], "value": values[i]});
     }
     return map
 }
 
-function show_pie_chart(svg, values, labels, onClick) {
-    svg.selectAll("*").remove();
+function max_label_width(labels){
+    let res = [];
+    for(let label of labels){
+        res.push(get_text_width(label, 'regular 17pt arial'));
+    }
+    return Math.max(...res);
+}
 
-    var data = combine_values_and_labels(values, labels);
+function get_text_width(text, font) {
+    let canvas = get_text_width.canvas || (get_text_width.canvas = document.createElement("canvas"));
+    let context = canvas.getContext("2d");
+    context.font = font;
+    let metrics = context.measureText(text);
+    return metrics.width;
+}
 
-    var width = svg.attr("width"),
-        height = svg.attr("height"),
-        radius = Math.min(width, height) / 2 - 20;
+function calculate_radius(width, height, labels) {
+    return Math.min(0.75*(width-2*max_label_width(labels)), height) / 2;
+}
 
-    console.log(radius);
 
-    svg = svg.append("svg")
+function show_pie_chart(element, values, labels, onClick) {
+    clear_element(element);
+
+    let data = combine_values_and_labels(values, labels);
+
+    let width = parseInt(element.attr("width"));
+    let height = parseInt(element.attr("height"));
+    let radius = calculate_radius(width, height, labels);
+
+    let svg = element.append("svg")
         .attr("height", height)
         .attr("width", width)
 
-    var g = svg.append("g").attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+    let g = svg.append("g").attr("transform", translate(width/2, height/2));
 
-    var color = d3.scaleOrdinal(colors);
+    let color = d3.scaleOrdinal(colors);
 
     // Generate the pie
-    var pie = d3.pie()
+    let pie = d3.pie()
         .value(function (d) {
             return d.value
         });
 
-    var data_ready = pie(data)
+    let data_ready = pie(data)
 
     // Generate the arcs
-    var arc = d3.arc()
+    let arc = d3.arc()
         .innerRadius(radius * 0.4)
         .outerRadius(radius * 0.8);
 
-    var outerArc = d3.arc()
+    let outerArc = d3.arc()
         .innerRadius(radius * 0.9)
         .outerRadius(radius * 0.9);
 
     //Generate groups
-    var arcs = g.selectAll("arc")
+    let arcs = g.selectAll("arc")
         .data(data_ready)
         .enter()
         .append("g")
@@ -52,7 +71,7 @@ function show_pie_chart(svg, values, labels, onClick) {
     svg.append('g').attr("class", "labels");
     svg.append('g').attr("class", "lines");
 
-    var text = svg.select(".labels").selectAll("text")
+    let text = svg.select(".labels").selectAll("text")
         .data(data_ready);
 
     text.enter()
@@ -73,7 +92,7 @@ function show_pie_chart(svg, values, labels, onClick) {
         })
         .style("font-size", 17);
 
-    var polylines = svg.select(".lines").selectAll("polyline")
+    let polylines = svg.select(".lines").selectAll("polyline")
         .data(data_ready)
 
     polylines.enter()
