@@ -23,7 +23,8 @@ function show_bar_chart(svg, values, labels, onClick) {
       .attr("transform", "translate(0," + (height - bottomMargin) + ")")
       .call(d3.axisBottom(x))
       .selectAll("text")
-        .style("text-anchor", "middle");
+		.attr("transform", "rotate(-45)")
+        .style("text-anchor", "end");
 
     // Add Y axis
     var y = d3.scaleLinear()
