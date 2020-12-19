@@ -9,6 +9,7 @@ let selected_mealtime = undefined;
 let selected_cooktime = undefined;
 let colors = ["#00c0c7", "#5144d3", "#e8871a", "#da3490", "#9089fa", "#47e26f", "#2780eb", "#6f38b1", "#dfbf03", "#cb6f10", "#268d6c", "#9bec54"]
 let originalSize = {};
+let table = undefined;
 
 function generate_chord_chart(svg, connections, group_names) {
     function getGradID(d) {
@@ -312,7 +313,7 @@ function get_valid_recipes(_ingredients) {
     for (let i = 0; i < names.length; i++) {
         let intersection = intersect(_ingredients, ingredients[i]);
         if (intersection.length === _ingredients.length) {
-            valid_recipes[names[i]] = 2 / ingredients[i].length;
+            valid_recipes[names[i]] = i;
         }
     }
     return valid_recipes;
@@ -586,6 +587,17 @@ function update_links(pick) {
     valid_recipes = filter_recipes_on_cuisine(selected_cuisine ? [selected_cuisine] : [], valid_recipes)
     valid_recipes = filter_recipes_on_cooktime(selected_cooktime ? [selected_cooktime] : [], valid_recipes)
     valid_recipes = filter_recipes_on_mealtime(selected_mealtime ? [selected_mealtime] : [], valid_recipes)
+    if (table !== undefined) table.destroy()
+    table = $('#recipeTable').DataTable( {
+        data: getTableData(valid_recipes),
+        columns: [
+            { title: "Name" },
+            { title: "Cuisine" },
+            { title: "Type" },
+            { title: "Time" },
+            { title: "Link" }
+        ]
+    });
 
     try {
         add_links(get_random_recipes(valid_recipes, 3));
@@ -595,6 +607,21 @@ function update_links(pick) {
     }
 }
 
+function* getTableData(valid_recipes) {
+    for (var recipe of Object.values(valid_recipes)) {
+        yield [
+            extractName(names[i]),
+            cuisines[i],
+            mealtimes[i],
+            cooktimes[i],
+            "https://www.food.com/recipe/"+names[i]
+        ]
+    }
+}
+function extractName(name) {
+    const split = name.split('-');
+    return split.slice(0, split.length - 1).join(" ")
+}
 function update_charts(pick) {
     if (selected_cuisine === undefined) {
         let _cuisines = get_cuisines_relative(pick,
