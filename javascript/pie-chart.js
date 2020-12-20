@@ -30,7 +30,7 @@ function calculate_radius(width, height, labels) {
 }
 
 
-function show_pie_chart(element, values, labels, onClick) {
+function show_pie_chart(element, values, labels, _, onClick) {
     clear_element(element);
 
     let data = combine_values_and_labels(values, labels);
