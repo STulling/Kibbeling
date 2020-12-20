@@ -340,7 +340,7 @@ function update_charts(pick) {
             selected_mealtime ? [selected_mealtime] : [],
             selected_cuisine ? [selected_cuisine] : []);
         let top_cooktimes = limit(_cooktimes, 10, (f, s) => s[0].localeCompare(f[0]));
-        show_pie_chart(d3.select('#cooktimeschart'), top_cooktimes.map(x => x[1]), top_cooktimes.map(x => x[0]), cooktime_callback(pick))
+        show_pie_chart(d3.select('#cooktimeschart'), top_cooktimes.map(x => x[1]), top_cooktimes.map(x => x[0]), "", cooktime_callback(pick))
     }
     update_links(pick);
 }
