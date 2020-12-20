@@ -164,19 +164,20 @@ function scaleGraph() {
         .attr("transform", "translate(" + width / 2 + "," + height / 2 + ") scale(" + Math.min(width / originalSize.width, height / originalSize.height) + ")")
 }
 
-function _showGraph(graph_type, element_id, top_elements, callback) {
+function _showGraph(graph_type, element_id, top_elements, title, callback) {
     let width = document.getElementById(element_id).offsetWidth;
     let height = document.getElementById(element_id).offsetHeight;
     d3.select("#" + element_id)
         .attr("width", width)
         .attr("height", height)
-    graph_type(d3.select("#" + element_id), top_elements.map(x => x[1]), top_elements.map(x => x[0]), callback);
+    if (!top_elements) return
+    graph_type(d3.select("#" + element_id), top_elements.map(x => x[1]), top_elements.map(x => x[0]), title, callback);
 }
 
 function showGraphs() {
-    _showGraph(show_pie_chart, "cooktimeschart", top_cooktimes, cooktime_callback(pick));
-    _showGraph(show_bar_chart, "cuisinechart", top_cuisines, cuisine_callback(pick));
-    _showGraph(show_bar_chart, "mealtimeschart", top_mealtimes, mealtime_callback(pick));
+    _showGraph(show_pie_chart, "cooktimeschart", top_cooktimes, '', cooktime_callback(pick));
+    _showGraph(show_bar_chart, "cuisinechart", top_cuisines, 'relative % within cuisine', cuisine_callback(pick));
+    _showGraph(show_bar_chart, "mealtimeschart", top_mealtimes, 'relative % within mealtimes', mealtime_callback(pick));
 }
 
 function refreshGraphs() {
@@ -323,7 +324,7 @@ function update_charts(pick) {
             selected_mealtime ? [selected_mealtime] : [],
             selected_cuisine ? [selected_cuisine] : []);
         let top_cuisines = limit(_cuisines, 10, (f, s) => s[1] - f[1]);
-        show_bar_chart(d3.select('#cuisinechart'), top_cuisines.map(x => x[1]), top_cuisines.map(x => x[0]), cuisine_callback(pick));
+        show_bar_chart(d3.select('#cuisinechart'), top_cuisines.map(x => x[1]), top_cuisines.map(x => x[0]), "relative % within cuisine", cuisine_callback(pick));
     }
     if (selected_mealtime === undefined) {
         let _mealtimes = get_mealtimes_relative(pick,
@@ -331,7 +332,7 @@ function update_charts(pick) {
             selected_mealtime ? [selected_mealtime] : [],
             selected_cuisine ? [selected_cuisine] : []);
         let top_mealtimes = limit(_mealtimes, 10, (f, s) => mealtime_to_number(f[0]) - mealtime_to_number(s[0]));
-        show_bar_chart(d3.select('#mealtimeschart'), top_mealtimes.map(x => x[1]), top_mealtimes.map(x => x[0]), mealtime_callback(pick))
+        show_bar_chart(d3.select('#mealtimeschart'), top_mealtimes.map(x => x[1]), top_mealtimes.map(x => x[0]), "relative % within mealtimes", mealtime_callback(pick))
     }
     if (selected_cooktime === undefined) {
         let _cooktimes = get_time_to_cook_relative(pick,

@@ -6,6 +6,7 @@ function combine_values_and_labels(values, labels) {
     return map
 }
 
+
 function max_label_width(labels){
     let res = [];
     for(let label of labels){
@@ -14,6 +15,7 @@ function max_label_width(labels){
     return Math.max(...res);
 }
 
+
 function get_text_width(text, font) {
     let canvas = get_text_width.canvas || (get_text_width.canvas = document.createElement("canvas"));
     let context = canvas.getContext("2d");
@@ -21,6 +23,7 @@ function get_text_width(text, font) {
     let metrics = context.measureText(text);
     return metrics.width;
 }
+
 
 function calculate_radius(width, height, labels) {
     return Math.min(0.75*(width-2*max_label_width(labels)), height) / 2;
@@ -94,6 +97,7 @@ function show_pie_chart(element, values, labels, onClick) {
 
     let polylines = svg.select(".lines").selectAll("polyline")
         .data(data_ready)
+
 
     polylines.enter()
         .append("polyline")

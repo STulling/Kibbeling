@@ -1,13 +1,15 @@
-function show_bar_chart(svg, values, labels, onClick) {
+function show_bar_chart(svg, values, labels, title, onClick) {
     clear_element(svg);
 
     let height = parseInt(svg.attr("height"));
     let width = parseInt(svg.attr("width"));
     let padding = parseInt(svg.attr("padding"));
 
-    svg = svg.append("svg")
-            .attr("height", height + 2 * padding)
-            .attr("width", width)
+    let base = svg.append("svg")
+        .attr("height", height + 2 * padding)
+        .attr("width", width)
+
+    svg = base
         .append("g")
             .attr("transform",
               "translate(" + padding + "," + 0 + ")");
@@ -48,6 +50,18 @@ function show_bar_chart(svg, values, labels, onClick) {
         .attr("value", function (d) {
             return d.Key
         }).style("cursor", "pointer")
+
+    base.append('g')
+        .append("text")
+        .attr("class", "y label")
+        .attr("text-anchor", "center")
+        .attr("y", 0)
+        .attr("x", -(height+padding)/2)
+        .attr("dy", ".75em")
+        .attr("transform", "rotate(-90)" +
+         "translate(" + -padding + ")")
+        .text(title)
+        .style("font-size", "12px");
 
     svg.selectAll("rect").on("click", selectChart(svg, onClick));
 }
