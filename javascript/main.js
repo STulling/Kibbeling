@@ -170,6 +170,7 @@ function _showGraph(graph_type, element_id, top_elements, callback) {
     d3.select("#" + element_id)
         .attr("width", width)
         .attr("height", height)
+    if (!top_elements) return
     graph_type(d3.select("#" + element_id), top_elements.map(x => x[1]), top_elements.map(x => x[0]), callback);
 }
 
