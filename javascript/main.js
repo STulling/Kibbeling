@@ -203,6 +203,10 @@ function create_chord_diagram(svg) {
         .on("click", selectLink(svg))
 }
 
+function capitalize(word) {
+    return word.charAt(0).toUpperCase() + word.slice(1)
+}
+
 function selectLink(svg) {
     return function (mouseEvent, obj) {
         let clickedPath = svg.select(".link").selectAll("path")
@@ -226,7 +230,7 @@ function selectLink(svg) {
 
             // Selected following ingredients:
             pick = [top_ids[obj.source.index], top_ids[obj.target.index]];
-            show_link("SELECTED: " + pick[0] + " and " + pick[1]);
+            show_link("SELECTED: " + capitalize(pick[0]) + " & " + capitalize(pick[1]));
 
             let _cuisines = get_cuisines_relative(pick, [], [], []);
             top_cuisines = limit(_cuisines, 10, (f, s) => s[1] - f[1], cuisine_callback(pick));
