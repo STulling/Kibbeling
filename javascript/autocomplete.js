@@ -1,3 +1,4 @@
+// from https://www.w3schools.com/howto/howto_js_autocomplete.asp
 function autocomplete(inp, arr) {
   var currentFocus;
   inp.addEventListener("input", function(e) {
